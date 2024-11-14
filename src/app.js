@@ -7,11 +7,11 @@ import rateLimit from "express-rate-limit";
 //import {Server} from "socket.io"
 
 const app = express()
-const upload = multer(); // Initialize multer without any storage configuration for handling form-data
+//const upload = multer(); // Initialize multer without any storage configuration for handling form-data
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
-    credentials: true
+    credentiˀxals: true
 }))
 
 app.use(express.json({limit: "16kb"}))

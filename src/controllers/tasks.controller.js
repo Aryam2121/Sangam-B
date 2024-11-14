@@ -1,5 +1,6 @@
 import { Task } from '../models/tasks.model.js';
 
+
 export const createTask = async (req, res) => {
     try {
         const { title, description, assignedTo, project, status, dueDate } = req.body;
@@ -10,6 +11,7 @@ export const createTask = async (req, res) => {
         res.status(500).json({ message: "Error creating task", error });
     }
 };
+
 
 export const updateTask = async (req, res) => {
     try {
@@ -40,7 +42,6 @@ export const getTasks = async (req, res) => {
         res.status(500).json({ message: "Error fetching tasks", error });
     }
 };
-
 
 
 export const getTaskById = async (req, res) => {

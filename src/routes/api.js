@@ -36,9 +36,11 @@ router.route("/project").post(
 router.route('/getprojectbyid').get(
     getProjectById
 )
+
 router.route('/deleteprojectbyid').delete(
     deleteProject
 )
+
 router.route('updateproject').patch(
     updateProject
 )
@@ -46,6 +48,7 @@ router.route('updateproject').patch(
 router.route('/project/task').post(
     createTask
 )
+
 router.route('/project/getTaskById').get(
     getTaskById
 )
@@ -61,6 +64,7 @@ router.route('/getalldep').get(
 router.route('/project/:projectId/tasks').get(
     getAllTasksByProjectId
 )
+
 // router.route('/project/task').post(
 //     authorizeRoles('Project Admin'),
 //     createTask
