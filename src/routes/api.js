@@ -41,7 +41,7 @@ router.route('/deleteprojectbyid').delete(
     deleteProject
 )
 
-router.route('updateproject').patch(
+router.route('/updateproject').patch(
     updateProject
 )
 
