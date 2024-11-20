@@ -7,12 +7,13 @@ import {asyncHandler} from '../utils/asyncHandler.js';
 export const createProject = asyncHandler(async (req, res) => {
     try {
         const { name, description, projectAdminId, workerIds,taskIds} = req.body;
-        if (!name || !description || !projectAdminId || !workerIds || !taskIds) {
+        if (!name || !description  || !projectAdminId || !workerIds || !taskIds) {
             return res.status(400).json({ error: 'All fields are required' });
         }
         const projectAdmin = await User.findById(projectAdminId);
         if (!projectAdmin) return res.status(404).json({ error: 'Project admin not found' });
-
+        
+       
         if (!Array.isArray(workerIds)) {
             return res.status(400).json({ error: 'workerIds must be an array' });
         }
@@ -35,7 +36,6 @@ export const createProject = asyncHandler(async (req, res) => {
         if (tasks.length !== taskIds.length) {
             return res.status(404).json({ error: 'One or more tasks not found' });
         }
-
         
         const newProject = await Project.create({
             name,

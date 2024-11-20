@@ -10,6 +10,10 @@ const projectSchema = new Schema({
     //     type: Schema.Types.ObjectId,
     //     ref: 'User',
     // }],
+    resources: {
+        type: String,
+        required: true,
+    },
     projectAdmin: {
         type: Schema.Types.ObjectId,
         ref: 'User',
