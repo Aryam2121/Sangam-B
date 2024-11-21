@@ -7,17 +7,13 @@ export const createPath = async (req, res) => {
         //console.log((req));
         const { projectId, path, timestamp, distance } = req.body;
         //console.log("body is",req.body);
-        
+
         if (!projectId || !timestamp) {
             throw new ApiError(400, "All fields are required");
         }
 
         if(!Array.isArray(path)){
             throw new ApiError(400, "Path must be an array");
-        }
-        const existingPath = await Path.findOne({ projectId });
-        if (existingPath) {
-            throw new ApiError(400, "A path with this project ID already exists");
         }
 
         const newPath = await Path.create({
