@@ -6,14 +6,24 @@ import {asyncHandler} from '../utils/asyncHandler.js';
 
 export const createProject = asyncHandler(async (req, res) => {
     try {
-        const { name, description, projectAdminId, workerIds,taskIds} = req.body;
-        if (!name || !description  || !projectAdminId || !workerIds || !taskIds) {
+        console.log("Request body:", req.body);
+        const { name, description,resources, projectAdmin, workerIds,taskIds} = req.body;
+        if (!name || !description  || !projectAdmin || !resources || !workerIds || !taskIds) {
             return res.status(400).json({ error: 'All fields are required' });
         }
-        const projectAdmin = await User.findById(projectAdminId);
-        if (!projectAdmin) return res.status(404).json({ error: 'Project admin not found' });
         
+        const existedProject = await Project.findOne({
+            name
+        })
+        if (existedProject) {
+            return res.status(409).json({ error: 'Project with name already exists' })
+        }
        
+        const existingProjectAdmin = await User.findOne({username:projectAdmin});
+
+        if (!existingProjectAdmin) return res.status(404).json({ error: 'Project admin not found' });
+        
+        
         if (!Array.isArray(workerIds)) {
             return res.status(400).json({ error: 'workerIds must be an array' });
         }
@@ -26,8 +36,10 @@ export const createProject = asyncHandler(async (req, res) => {
             return res.status(400).json({ error: 'taskIds array cannot be empty' });
         }
 
-        const workers = await User.find({ _id: { $in: workerIds } });
+        const workers = await User.find({ username: { $in: workerIds } });
         const tasks=await Task.find({_id: { $in: taskIds}});
+
+       
 
         if (workers.length !== workerIds.length) {
             return res.status(404).json({ error: 'One or more workers not found' });
@@ -36,18 +48,26 @@ export const createProject = asyncHandler(async (req, res) => {
         if (tasks.length !== taskIds.length) {
             return res.status(404).json({ error: 'One or more tasks not found' });
         }
+
+        const workerUsernames = workers.map(worker => worker.username);
+        const taskObjectIds = tasks.map(task => task._id);
         
         const newProject = await Project.create({
             name,
             description,
-            projectAdmin: projectAdminId,
-            workers: workerIds,
-            tasks:taskIds,
+            resources,
+            projectAdmin: existingProjectAdmin.username,
+            workerIds: workerUsernames,
+            taskIds:taskObjectIds,
+            startDate: new Date(), // Example property
+            endDate: new Date(),
+            status: 'active'
         });
 
         res.status(201).json(newProject);
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        console.error("Error creating project:", error); // Log the error for debugging
+        res.status(500).json({ error: 'Server error',details:error.message });
     }
 });
 
@@ -122,3 +142,12 @@ export const getAllTasksByProjectId = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+export const getAllProjects=async (req,res)=>{
+    try {
+        const projects=await Project.find();
+        res.status(200).json(projects);
+    } catch (error) {
+        res.status(500).json({message:"Eroor in fetching projects",error});
+    }
+}

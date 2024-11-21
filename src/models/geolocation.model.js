@@ -5,7 +5,7 @@ const pathSchema = new Schema({
         type: String,
         required: true
     },
-    path: [
+    path: [[
         {
             lat: {
                 type: Number,
@@ -16,7 +16,7 @@ const pathSchema = new Schema({
                 required: true
             }
         }
-    ],
+    ]],
     timestamp: {
         type: Date,
         required: true

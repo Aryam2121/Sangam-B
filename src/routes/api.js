@@ -1,6 +1,6 @@
 import { Router } from "express";
 //import { assignProjectToUser,getAllUsers,getUserById } from "../controllers/user.controller.js";
-import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId } from "../controllers/project.controller.js";
+import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
 import { createTask,getTaskById,getTasks,updateTask,deleteTask } from "../controllers/tasks.controller.js";
 import { createDepartment, getAllDepartments } from "../controllers/department.controller.js";
 import { createPath,getPathById } from "../controllers/geolocation.controller.js";
@@ -64,6 +64,10 @@ router.route('/getalldep').get(
 
 router.route('/project/:projectId/tasks').get(
     getAllTasksByProjectId
+)
+
+router.route('/getallprojects').get(
+    getAllProjects
 )
 
 // router.route('/project/task').post(

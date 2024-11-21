@@ -1,4 +1,5 @@
 import { User } from '../models/user.model.js';
+import {Department} from '../models/department.model.js';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -45,7 +46,12 @@ export const registerUser = asyncHandler(
         throw new ApiError(409, "User with email or username already exists")
     }
     //console.log(req.files);
-
+    if (role !== 'Main Admin') {
+        const existingDepartment = await Department.findOne({ name: department });
+        if (!existingDepartment) {
+            throw new ApiError(404, "Department not found");
+        }
+    }
     
     const user = await User.create({
         fullName,
