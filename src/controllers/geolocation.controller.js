@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {Path} from '../models/geolocation.model.js';
 import { ApiError } from '../utils/ApiError.js';
 
@@ -16,9 +17,17 @@ export const createPath = async (req, res) => {
             throw new ApiError(400, "Path must be an array");
         }
 
+        const pathWithIds = path.map(innerArray => ({
+            id: uuidv4(),
+            points:innerArray.map(point => ({
+                ...point,
+                id: uuidv4()
+            }))
+    }));
+
         const newPath = await Path.create({
             projectId,
-            path:path || [],
+            path:pathWithIds,
             timestamp,
             distance:distance || 0
         });

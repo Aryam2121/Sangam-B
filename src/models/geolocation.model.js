@@ -1,22 +1,34 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
+
+const pathPointSchema = new Schema({
+    lat: {
+        type: Number,
+        required: true
+    },
+    lng: {
+        type: Number,
+        required: true
+    },
+    id: {
+        type: String,
+        required: true
+    }
+});
 
 const pathSchema = new Schema({
     projectId: {
         type: String,
         required: true
     },
-    path: [[
+    path: [
         {
-            lat: {
-                type: Number,
+            id: {
+                type: String,
                 required: true
             },
-            lng: {
-                type: Number,
-                required: true
-            }
+            points: [pathPointSchema]
         }
-    ]],
+    ],
     timestamp: {
         type: Date,
         required: true
