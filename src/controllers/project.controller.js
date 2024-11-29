@@ -3,12 +3,13 @@ import { Project } from '../models/project.model.js';
 import {User} from '../models/user.model.js';
 import {Task} from '../models/tasks.model.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
+import {Department} from '../models/department.model.js'
 
 export const createProject = asyncHandler(async (req, res) => {
     try {
         console.log("Request body:", req.body);
-        const { name, description,resources, projectAdmin, workerIds,taskIds} = req.body;
-        if (!name || !description  || !projectAdmin || !resources || !workerIds || !taskIds) {
+        const { name, description,departments,resources, projectAdmin, workerIds,taskIds} = req.body;
+        if (!name || !description || !departments || !projectAdmin || !resources || !workerIds || !taskIds) {
             return res.status(400).json({ error: 'All fields are required' });
         }
         
@@ -18,11 +19,25 @@ export const createProject = asyncHandler(async (req, res) => {
         if (existedProject) {
             return res.status(409).json({ error: 'Project with name already exists' })
         }
+
+        if (!Array.isArray(departments) || departments.length === 0) {
+            return res.status(400).json({ error: 'departments must be a non-empty array' });
+        }
+
+        const departmentObjectIds = await Promise.all(departments.map(async (departmentName) => {
+            const department = await Department.findOne({ name: departmentName });
+            if (!department) {
+                throw new Error(`Department not found: ${departmentName}`);
+            }
+            return department._id;
+        }));
+
        
         const existingProjectAdmin = await User.findOne({username:projectAdmin});
 
-        if (!existingProjectAdmin) return res.status(404).json({ error: 'Project admin not found' });
+        if (!existingProjectAdmin) return res.status(404).json({ error: 'Project admin not found'});
         
+
         
         if (!Array.isArray(workerIds)) {
             return res.status(400).json({ error: 'workerIds must be an array' });
@@ -55,6 +70,7 @@ export const createProject = asyncHandler(async (req, res) => {
         const newProject = await Project.create({
             name,
             description,
+            departments:departmentObjectIds,
             resources,
             projectAdmin: existingProjectAdmin.username,
             workerIds: workerUsernames,
