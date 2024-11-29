@@ -1,8 +1,12 @@
 import mongoose, {Schema} from "mongoose";
 
 const taskSchema = new Schema({
-    title: {
+    title:{
         type: String,
+        required: true,
+    },
+    taskId:{
+        type: Number,
         required: true,
     },
     description: String,
@@ -12,7 +16,7 @@ const taskSchema = new Schema({
         required: true,
     },
     project: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'Project',
         required: true,
     },

@@ -1,10 +1,16 @@
 import { Task } from '../models/tasks.model.js';
-
+import { Project } from '../models/project.model.js';
 
 export const createTask = async (req, res) => {
     try {
-        const { title, description, assignedTo, project, status, dueDate } = req.body;
-        const task = new Task({ title, description, assignedTo, project, status, dueDate });
+        const { title,taskId, description, assignedTo, project, status, dueDate } = req.body;
+        const existedProject = await Project.findOne({
+            project
+        })
+        if(!existedProject){
+            return res.status(404).json({ error: 'Project not found' })
+        }
+        const task = new Task({ title,taskId, description, assignedTo, project, status, dueDate });
         await task.save();
         res.status(201).json({ message: "Task created successfully", task });
     } catch (error) {
@@ -46,7 +52,7 @@ export const getTasks = async (req, res) => {
 
 export const getTaskById = async (req, res) => {
     try {
-        const { taskId } = req.query;
+        const { taskId } = req.params;
         const task = await Task.findById(taskId);
         if (!task) {
             throw new ApiError(404, "Task not found");
