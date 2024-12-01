@@ -4,16 +4,16 @@ import { Project } from '../models/project.model.js';
 export const createTask = async (req, res) => {
     try {
         const { title,taskId, description, assignedTo, project, status, dueDate } = req.body;
-        const existedProject = await Project.findById({
-            project
-        })
+        const existedProject = await Project.findById(project)
         if(!existedProject){
             return res.status(404).json({ error: 'Project not found' })
         }
+        console.log(req.body);
         const task = new Task({ title,taskId, description, assignedTo, project, status, dueDate });
         await task.save();
         res.status(201).json({ message: "Task created successfully", task });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: "Error creating task", error });
     }
 };
