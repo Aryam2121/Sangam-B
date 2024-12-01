@@ -4,7 +4,7 @@ import { Project } from '../models/project.model.js';
 export const createTask = async (req, res) => {
     try {
         const { title,taskId, description, assignedTo, project, status, dueDate } = req.body;
-        const existedProject = await Project.findOne({
+        const existedProject = await Project.findById({
             project
         })
         if(!existedProject){

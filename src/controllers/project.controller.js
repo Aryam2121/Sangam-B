@@ -127,6 +127,7 @@ export const getProjectById = async (req, res) => {
         res.status(200).json({project} );
 };
 
+
 export const getAllTasksByProjectId = async (req, res) => {
     try {
         
@@ -158,6 +159,7 @@ export const getAllTasksByProjectId = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 
 export const getAllProjects=async (req,res)=>{
     try {
