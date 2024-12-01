@@ -8,7 +8,7 @@ export const createTask = async (req, res) => {
         if(!existedProject){
             return res.status(404).json({ error: 'Project not found' })
         }
-        console.log(req.body);
+        //console.log(req.body);
         const task = new Task({ title,taskId, description, assignedTo, project, status, dueDate });
         await task.save();
         res.status(201).json({ message: "Task created successfully", task });

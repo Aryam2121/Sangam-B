@@ -133,27 +133,18 @@ export const getAllTasksByProjectId = async (req, res) => {
         
         const { projectId } = req.params;
 
-        console.log(req);
+        //console.log(req.params);
 
         if (!mongoose.Types.ObjectId.isValid(projectId)) {
             return res.status(400).json({ error: 'Invalid project ID' });
         }
-        const project = await Project.aggregate([
-            { $match: { _id: new mongoose.Types.ObjectId(projectId) } },
-            { $lookup: {
-                from: 'tasks',
-                localField: 'tasks',
-                foreignField: '_id',
-                as: 'tasks'
-            }},
-            { $project: { tasks: 1, _id: 0 } }
-        ]);
+        const tasks = await Task.find({ project: projectId }).populate('assignedTo');
 
-        if (!project || project.length === 0) {
-            return res.status(404).json({ error: 'Project not found' });
+        if (!tasks || tasks.length === 0) {
+            return res.status(404).json({ error: 'No tasks found for this project' });
         }
 
-        res.status(200).json(project[0].tasks);
+        res.status(200).json(tasks);
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Server error' });
