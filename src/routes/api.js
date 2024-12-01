@@ -8,6 +8,7 @@ import { createPath,getPathById } from "../controllers/geolocation.controller.js
 //import { createDiscussion,getDiscussions,addMessage } from "../controllers/discussion.controller";
 import { authorizeRoles } from "../middlewares/auth.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId} from "../controllers/resources.controller.js";
 
 const router=Router();
 
@@ -80,6 +81,22 @@ router.route('/path').post(
 
 router.route('/path/:id').get(
     getPathById
+)
+
+router.route('/resource').post(
+    createResource
+)
+
+router.route('/resource/assign').post(
+    assignResourceToProject
+)
+
+router.route('/resource/:resourceId').get(
+    getResourceById
+)
+
+router.route('/project/:projectId/resources').get(
+    getResourcesByProjectId
 )
 export default router
 
