@@ -88,3 +88,12 @@ export const getResourcesByProjectId = async (req, res) => {
         res.status(500).json({ message: "Error fetching resources for project", error });
     }
 };
+
+export const getAllResources = async (req, res) => {
+    try {
+        const resources = await Resource.find().populate('assignments.project', 'name description');
+        res.status(200).json(resources);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching all resources", error });
+    }
+};
