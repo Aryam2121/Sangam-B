@@ -80,7 +80,8 @@ export const registerUser = asyncHandler(
   
 export const getUserById = async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).populate('department assignedProjects');
+        const {id}=req.body;
+        const user = await User.findById(id).populate('department');
         if (!user) return res.status(404).json({ error: 'User not found' });
         res.status(200).json(user);
     } catch (error) {
