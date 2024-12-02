@@ -52,7 +52,7 @@ export const getTasks = async (req, res) => {
 
 export const getTaskById = async (req, res) => {
     try {
-        const { taskId } = req.params;
+        const { taskId } = req.body;
         const task = await Task.findById(taskId);
         if (!task) {
             throw new ApiError(404, "Task not found");

@@ -102,6 +102,8 @@ router.route('/project/:projectId/resources').get(
 router.route('/getallresources').get(
     getAllResources
 )
+
+
 export default router
 
 
