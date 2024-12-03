@@ -1,5 +1,7 @@
+import mongoose from 'mongoose';
 import { Task } from '../models/tasks.model.js';
 import { Project } from '../models/project.model.js';
+import {User} from '../models/user.model.js';
 
 export const createTask = async (req, res) => {
     try {
@@ -65,3 +67,61 @@ export const getTaskById = async (req, res) => {
     }
 };
 
+
+export const getAllTasksByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        const tasks = await Task.aggregate([
+            {
+                $match: { assignedTo: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'assignedTo',
+                    foreignField: '_id',
+                    as: 'assignedTo'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'projects',
+                    localField: 'project',
+                    foreignField: '_id',
+                    as: 'project'
+                }
+            },
+            {
+                $unwind: '$assignedTo'
+            },
+            {
+                $unwind: '$project'
+            }
+        ]);
+
+        if (!tasks || tasks.length === 0) {
+            return res.status(404).json({ error: 'No tasks found for this user' });
+        }
+
+        res.status(200).json({ tasks });
+    } catch (error) {
+        console.error('Error fetching tasks for user:', error);
+        res.status(500).json({ message: "Error fetching tasks for user", error: error.message });
+    }
+};
+
+
+export const getAllTasks = async (req, res) => {
+    try {
+        const tasks = await Task.find();
+        res.status(200).json(tasks);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error fetching tasks", error });
+    }
+};

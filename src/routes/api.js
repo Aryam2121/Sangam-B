@@ -1,7 +1,7 @@
 import { Router } from "express";
 //import { assignProjectToUser,getAllUsers,getUserById } from "../controllers/user.controller.js";
 import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
-import { createTask,getTaskById,getTasks,updateTask,deleteTask } from "../controllers/tasks.controller.js";
+import { createTask,getTaskById,getTasks,updateTask,deleteTask , getAllTasksByUserId,getAllTasks} from "../controllers/tasks.controller.js";
 import { createDepartment, getAllDepartments } from "../controllers/department.controller.js";
 import { createPath,getPathById } from "../controllers/geolocation.controller.js";
 //import { createMessage,deleteMessage,getMessageById,getMessagesByDiscussion } from "../controllers/message.controller.js";
@@ -67,6 +67,10 @@ router.route('/project/:projectId/tasks').get(
     getAllTasksByProjectId
 )
 
+router.route('/getalltasksbyuserid').get(
+    getAllTasksByUserId
+)
+
 router.route('/getallprojects').get(
     getAllProjects
 )
@@ -103,6 +107,9 @@ router.route('/getallresources').get(
     getAllResources
 )
 
+router.route('/getalltasks').get(
+    getAllTasks
+)
 
 export default router
 
