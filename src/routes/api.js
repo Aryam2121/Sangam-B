@@ -51,7 +51,7 @@ router.route('/project/task').post(
     createTask
 )
 
-router.route('/project/getTaskById').get(
+router.route('/project/getTaskById/:taskId').get(
     getTaskById
 )
 

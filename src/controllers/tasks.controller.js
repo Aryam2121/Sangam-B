@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Task } from '../models/tasks.model.js';
 import { Project } from '../models/project.model.js';
 import {User} from '../models/user.model.js';
+import { ApiError } from '../utils/ApiError.js';
 
 export const createTask = async (req, res) => {
     try {
@@ -54,7 +55,7 @@ export const getTasks = async (req, res) => {
 
 export const getTaskById = async (req, res) => {
     try {
-        const { taskId } = req.body;
+        const { taskId } = req.params;
         const task = await Task.findById(taskId);
         if (!task) {
             throw new ApiError(404, "Task not found");
@@ -63,7 +64,8 @@ export const getTaskById = async (req, res) => {
             { task }
         );
     } catch (error) {
-        res.status(500).json({ message: "Error fetching task", error });
+        console.error('Error fetching task by ID:', error);
+        res.status(500).json({ message: "Error fetching task", error: error.message });
     }
 };
 
