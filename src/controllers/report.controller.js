@@ -13,24 +13,16 @@ const upload = multer({ dest: 'uploads/' });
 export const uploadProjectReport = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { reportUrl } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(projectId)) {
             return res.status(400).json({ error: 'Invalid project ID' });
         }
 
-        let filePath;
-
-        if (req.file) {
-            filePath = req.file.path;
-        } else if (reportUrl) {
-            if (!fs.existsSync(reportUrl)) {
-                return res.status(400).json({ error: 'File does not exist' });
-            }
-            filePath = reportUrl;
-        } else {
-            return res.status(400).json({ error: 'No file provided' });
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
         }
+
+        const filePath = req.file.path;
 
         const result = await uploadOnCloudinary(filePath);
 
