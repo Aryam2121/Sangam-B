@@ -23,11 +23,10 @@ export const uploadProjectReport = async (req, res) => {
         }
 
         const filePath = req.file.path;
-
+        //console.log((filePath));
         console.log(`Uploading file: ${filePath}`);
 
         const result = await uploadOnCloudinary(filePath);
-
         if (!result) {
             return res.status(500).json({ error: 'Error uploading file to Cloudinary' });
         }
