@@ -9,13 +9,15 @@ import rateLimit from "express-rate-limit";
 const app = express()
 //const upload = multer(); // Initialize multer without any storage configuration for handling form-data
 
+
+
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentiˀxals: true
 }))
 
 app.use(express.json({limit: "16kb"}))
-app.use(express.urlencoded({extended: true, limit: "16kb"}))
+app.use(express.urlencoded({extended: false, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 

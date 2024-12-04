@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Resource } from '../models/resources.model.js';
 import { Project } from '../models/project.model.js';
 
+
 // Controller to create a new resource
 export const createResource = async (req, res) => {
     try {
@@ -13,6 +14,7 @@ export const createResource = async (req, res) => {
         res.status(500).json({ message: "Error creating resource", error });
     }
 };
+
 
 // Controller to assign a resource to a project
 export const assignResourceToProject = async (req, res) => {
@@ -48,6 +50,8 @@ export const assignResourceToProject = async (req, res) => {
     }
 };
 
+
+
 export const getResourceById = async (req, res) => {
     try {
         const { resourceId } = req.params;
@@ -66,6 +70,7 @@ export const getResourceById = async (req, res) => {
         res.status(500).json({ message: "Error fetching resource data", error });
     }
 };
+
 
 
 export const getResourcesByProjectId = async (req, res) => {
@@ -88,6 +93,7 @@ export const getResourcesByProjectId = async (req, res) => {
         res.status(500).json({ message: "Error fetching resources for project", error });
     }
 };
+
 
 export const getAllResources = async (req, res) => {
     try {

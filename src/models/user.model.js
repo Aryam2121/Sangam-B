@@ -34,7 +34,7 @@ const userSchema = new Schema(
         },
         role: {
             type: String,
-            enum: ['Main Admin', 'Project Admin', 'Worker','Department Admin','Officer','Technician','Contractor'],
+            enum: ['Main Admin', 'Worker','Department Admin','Officer','Technician','Contractor'],
             required: true
         },
         department: {

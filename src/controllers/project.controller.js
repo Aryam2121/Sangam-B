@@ -4,6 +4,7 @@ import {User} from '../models/user.model.js';
 import {Task} from '../models/tasks.model.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
 import {Department} from '../models/department.model.js'
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 export const createProject = asyncHandler(async (req, res) => {
     try {
@@ -160,4 +161,5 @@ export const getAllProjects=async (req,res)=>{
         res.status(500).json({message:"Eroor in fetching projects",error});
     }
 }
+
 
