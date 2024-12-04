@@ -24,6 +24,8 @@ export const uploadProjectReport = async (req, res) => {
 
         const filePath = req.file.path;
 
+        console.log(`Uploading file: ${filePath}`);
+
         const result = await uploadOnCloudinary(filePath);
 
         if (!result) {
@@ -50,17 +52,6 @@ export const uploadProjectReport = async (req, res) => {
     }
 };
 
-
-
-
-
 router.post('/uploadProjectReport/:projectId', upload.single('report'), uploadProjectReport);
 
-
-
-
-
 export default router;
-
-
-
