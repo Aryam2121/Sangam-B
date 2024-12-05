@@ -15,6 +15,7 @@ const pathPointSchema = new Schema({
     }
 });
 
+
 const pathSchema = new Schema({
     projectId: {
         type: String,
