@@ -33,6 +33,7 @@ export const updateTask = async (req, res) => {
     }
 };
 
+
 export const deleteTask = async (req, res) => {
     try {
         const { taskId } = req.params;
@@ -127,3 +128,4 @@ export const getAllTasks = async (req, res) => {
         res.status(500).json({ message: "Error fetching tasks", error });
     }
 };
+

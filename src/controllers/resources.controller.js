@@ -95,6 +95,7 @@ export const getResourcesByProjectId = async (req, res) => {
 };
 
 
+
 export const getAllResources = async (req, res) => {
     try {
         const resources = await Resource.find().populate('assignments.project', 'name description');

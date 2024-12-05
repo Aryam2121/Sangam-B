@@ -69,6 +69,10 @@ router.route('/project/:projectId/tasks').get(
     getAllTasksByProjectId
 )
 
+router.route('/project/task').patch(
+    updateTask
+)
+
 router.route('/getalltasksbyuserid').get(
     getAllTasksByUserId
 )
@@ -76,6 +80,7 @@ router.route('/getalltasksbyuserid').get(
 router.route('/getallprojects').get(
     getAllProjects
 )
+
 
 // router.route('/project/task').post(
 //     authorizeRoles('Project Admin'),
