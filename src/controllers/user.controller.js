@@ -89,6 +89,7 @@ export const getUserById = async (req, res) => {
     }
 };
 
+
 export const getAllUsers = async (req, res) => {
     try {
         const { role } = req.query;

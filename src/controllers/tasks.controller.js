@@ -44,6 +44,7 @@ export const deleteTask = async (req, res) => {
     }
 };
 
+
 export const getTasks = async (req, res) => {
     try {
         const tasks = await Task.find().populate('assignedTo').populate('project');
