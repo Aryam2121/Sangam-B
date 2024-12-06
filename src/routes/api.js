@@ -120,11 +120,13 @@ router.route('/getalltasks').get(
     getAllTasks
 )
 
+
 const upload = multer({ dest: 'uploads/' });
 router.route('/uploadProjectReport/:projectId').post(
     upload.single('report'),
     uploadProjectReport
 );
+
 
 export default router
 
