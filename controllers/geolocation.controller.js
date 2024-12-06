@@ -41,7 +41,6 @@ export const createPath = async (req, res) => {
 
 export const getPathById = async (req, res) => {
     try {
-        console.log((req));
         const { id } = req.params;
 
         if (!id) {
