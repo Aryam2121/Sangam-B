@@ -37,7 +37,7 @@ router.route("/project").post(
 //     getProjects
 // )
 
-router.route('/getprojectbyid').get(
+router.route('/getprojectbyid/:id').get(
     getProjectById
 )
 
