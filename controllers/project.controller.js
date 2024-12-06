@@ -88,6 +88,7 @@ export const createProject = asyncHandler(async (req, res) => {
     }
 });
 
+
 export const updateProject = async (req, res) => {
     try {
         const { projectId } = req.params;
@@ -119,8 +120,10 @@ export const getProjects = async (req, res) => {
     }
 };
 
+
 export const getProjectById = async (req, res) => {
-        const { id } = req.params;
+    console.log(req);
+        const { id } = req.query;
         const project = await Project.findById(id);
         if (!project) {
             return res.status(404).json({ message: "Project not found" });        

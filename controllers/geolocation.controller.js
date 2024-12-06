@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import {Path} from '../models/geolocation.model.js';
 import { ApiError } from '../utils/ApiError.js';
-
+import {Project} from '../models/project.model.js';
 
 export const createPath = async (req, res) => {
     try {
@@ -16,7 +16,10 @@ export const createPath = async (req, res) => {
         if(!Array.isArray(path)){
             throw new ApiError(400, "Path must be an array");
         }
-
+        const project = await Project.findById(projectId);
+        if (!project) {
+            throw new ApiError(404, "Project not found");
+        }
         const pathWithIds = path.map(innerArray => ({
             id: uuidv4(),
             points:innerArray.map(point => ({
@@ -47,7 +50,7 @@ export const getPathById = async (req, res) => {
             throw new ApiError(400, "Path ID is required");
         }
 
-        const path = await Path.findById(id);
+        const path = await Project.findById(id);
 
         if (!path) {
             throw new ApiError(404, "Path not found");
