@@ -49,7 +49,6 @@ export const createPath = async (req, res) => {
 export const getPathById = async (req, res) => {
     try {
         const { id } = req.params;
-
         if (!id) {
             throw new ApiError(400, "Path ID is required");
         }

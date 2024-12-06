@@ -235,6 +235,7 @@ export const logoutUser=asyncHandler(async(req,res)=>{
 //     }
 // };
 
+
 export const deleteUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -244,6 +245,7 @@ export const deleteUser = async (req, res) => {
         res.status(500).json({ message: "Error deleting user", error });
     }
 };
+
 
 export const changeCurrentPassword= asyncHandler(async(req,res)=>{
     const {oldPassword,newPassword}=req.body
