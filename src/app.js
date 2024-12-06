@@ -21,6 +21,9 @@ app.use(express.urlencoded({extended: false, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+
+
+
 import authRouter from './routes/auth.js'
 import apiRouter from './routes/api.js'
 const limiter = rateLimit({
@@ -37,7 +40,9 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use("/admin",authRouter);
 app.use("/api",apiRouter);
-
+app.get("/", (req, res) => {
+    res.send("Server is live")
+})
 
 // const server = createserver(app); // Create the HTTP server using Express app
 // const io = new Server(server, {
