@@ -7,8 +7,14 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import authRouter from './routes/auth.js'
 import apiRouter from './routes/api.js'
-connectDB()
 dotenv.config()
+connectDB()
+.then(() => {
+    console.log("MONGO db connection successful !!!");
+})
+.catch((err) => {
+    console.log("MONGO db connection failed !!! ", err);
+});
 //import createserver from "http"
 //import {Server} from "socket.io"
 
@@ -55,9 +61,9 @@ app.use("/api",apiRouter);
 // });
 
 
-app.listen(process.env.PORT || 8001, () => {
+app.listen(process.env.PORT || 8000, () => {
     console.log(`⚙️ Server is running at port : ${process.env.PORT 
-        || 8001}
+        || 8000}
     `);
 })
 

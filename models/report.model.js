@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const reportSchema = new mongoose.Schema({
-    projectId: {
+    _id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',
         required: true

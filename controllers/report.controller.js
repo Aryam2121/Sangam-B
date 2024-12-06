@@ -37,7 +37,7 @@ export const uploadProjectReport = async (req, res) => {
         }
 
         const report = new Report({
-            projectId: project._id,
+            _id: project._id,
             reportUrl: result.secure_url,
             submittedAt: new Date()
         });
@@ -51,6 +51,26 @@ export const uploadProjectReport = async (req, res) => {
     }
 };
 
+export const getReportByProjectId = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID' });
+        }
+
+        const report = await Report.findById(projectId);
+
+
+        res.status(200).json({ report });
+    } catch (error) {
+        console.error('Error fetching report:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 router.post('/uploadProjectReport/:projectId', upload.single('report'), uploadProjectReport);
+router.get('/getReportByProjectId/:projectId', getReportByProjectId);
+
 
 export default router;
