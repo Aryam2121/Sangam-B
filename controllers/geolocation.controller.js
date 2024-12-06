@@ -38,7 +38,11 @@ export const createPath = async (req, res) => {
         res.status(201).json({ message: 'Path created successfully', newPath });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error', error });
+        if (error instanceof ApiError) {
+            res.status(error.statusCode).json({ message: error.message, error });
+        } else {
+            res.status(500).json({ message: 'Server error', error });
+        }
     }
 };
 

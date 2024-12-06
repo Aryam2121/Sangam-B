@@ -122,13 +122,8 @@ export const getProjects = async (req, res) => {
 
 
 export const getProjectById = async (req, res) => {
-<<<<<<< HEAD
-    console.log(req);
+    try{
         const { id } = req.query;
-=======
-    try {
-        const { id } = req.params;
->>>>>>> 4584b352a256ad082ff9f59dc5d87f4f01ddc59f
         const project = await Project.findById(id);
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
@@ -138,7 +133,7 @@ export const getProjectById = async (req, res) => {
         console.error('Error fetching project:', error);
         res.status(500).json({ message: "Server error", error });
     }
-};
+}
 
 export const getAllTasksByProjectId = async (req, res) => {
     try {
