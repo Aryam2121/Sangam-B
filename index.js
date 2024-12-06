@@ -55,7 +55,6 @@ app.get("/", (req, res) => {
 //   },
 // });
 
-export { app }
 dotenv.config({
     path: './.env'
 })
