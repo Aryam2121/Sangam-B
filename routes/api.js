@@ -73,7 +73,7 @@ router.route('/project/task/:taskId').patch(
     updateTask
 )
 
-router.route('/getalltasksbyuserid').get(
+router.route('/getalltasksbyuserid/:userId').get(
     getAllTasksByUserId
 )
 

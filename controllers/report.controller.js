@@ -246,7 +246,7 @@ export const updateTaskReport = async (req, res) => {
             }
 
             const filePath = file.path;
-            console.log(`Uploading file: ${filePath}`);
+            //console.log(`Uploading file: ${filePath}`);
 
             const result = await uploadOnCloudinary(filePath);
             if (!result) {

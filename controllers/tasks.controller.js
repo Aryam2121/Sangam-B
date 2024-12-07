@@ -84,33 +84,7 @@ export const getAllTasksByUserId = async (req, res) => {
             return res.status(400).json({ error: 'Invalid user ID' });
         }
 
-        const tasks = await Task.aggregate([
-            {
-                $match: { assignedTo: mongoose.Types.ObjectId(userId) }
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'assignedTo',
-                    foreignField: '_id',
-                    as: 'assignedTo'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'projects',
-                    localField: 'project',
-                    foreignField: '_id',
-                    as: 'project'
-                }
-            },
-            {
-                $unwind: '$assignedTo'
-            },
-            {
-                $unwind: '$project'
-            }
-        ]);
+        const tasks = await Task.find({ assignedTo: userId }).populate('assignedTo').populate('project');
 
         if (!tasks || tasks.length === 0) {
             return res.status(404).json({ error: 'No tasks found for this user' });
@@ -118,8 +92,8 @@ export const getAllTasksByUserId = async (req, res) => {
 
         res.status(200).json({ tasks });
     } catch (error) {
-        console.error('Error fetching tasks for user:', error);
-        res.status(500).json({ message: "Error fetching tasks for user", error: error.message });
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
