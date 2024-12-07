@@ -6,10 +6,10 @@ const reportSchema = new mongoose.Schema({
         ref: 'Project',
         required: true
     },
-    reportUrl: {
+    reportUrls: [{
         type: String,
         required: true
-    },
+    }],
     submittedAt: {
         type: Date,
         default: Date.now

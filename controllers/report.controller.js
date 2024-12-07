@@ -20,22 +20,9 @@ export const uploadProjectReport = async (req, res) => {
             return res.status(400).json({ error: 'Invalid project ID' });
         }
 
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-
-        if (!req.file.mimetype.startsWith('image/')) {
-            return res.status(400).json({ error: 'Only image files are allowed' });
-        }
-
-
-        const filePath = req.file.path;
-        //console.log((filePath));
-        console.log(`Uploading file: ${filePath}`);
-
-        const result = await uploadOnCloudinary(filePath);
-        if (!result) {
-            return res.status(500).json({ error: 'Error uploading file to Cloudinary' });
+        if (!req.files || req.files.length === 0) {
+            console.error('No files uploaded');
+            return res.status(400).json({ error: 'No files uploaded' });
         }
 
         const project = await Project.findById(projectId);
@@ -43,21 +30,47 @@ export const uploadProjectReport = async (req, res) => {
             return res.status(404).json({ error: 'Project not found' });
         }
 
-        const report = new Report({
-            _id: project._id,
-            reportUrl: result.secure_url,
-            submittedAt: new Date()
+        const uploadPromises = req.files.map(async (file) => {
+            if (!file.mimetype.startsWith('image/')) {
+                throw new Error('Only image files are allowed');
+            }
+
+            const filePath = file.path;
+            console.log(`Uploading file: ${filePath}`);
+
+            const result = await uploadOnCloudinary(filePath);
+            if (!result) {
+                throw new Error('Error uploading file to Cloudinary');
+            }
+
+            return result.secure_url;
         });
+
+        const reportUrls = await Promise.all(uploadPromises);
+
+        let report = await Report.findById(projectId);
+        if (!report) {
+            report = new Report({
+                _id: project._id,
+                reportUrls: reportUrls,
+                submittedAt: new Date()
+            });
+        } else {
+            if (!report.reportUrls) {
+                report.reportUrls = [];
+            }
+            report.reportUrls.push(...reportUrls);
+            report.submittedAt = new Date();
+        }
 
         await report.save();
 
-        res.status(200).json({ message: 'Report uploaded successfully', report });
-    }catch(error){
-        console.error('Error uploading report:', error);
+        res.status(200).json({ message: 'Reports uploaded successfully', report });
+    } catch (error) {
+        console.error('Error uploading reports:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
-
 
 export const uploadTaskReport = async (req, res) => {
     try {
@@ -77,7 +90,7 @@ export const uploadTaskReport = async (req, res) => {
         }
 
         const filePath = req.file.path;
-        console.log(`Uploading file: ${filePath}`);
+       // console.log(`Uploading file: ${filePath}`);
 
         const result = await uploadOnCloudinary(filePath);
         if (!result) {
@@ -126,11 +139,11 @@ export const getReportByProjectId = async (req, res) => {
 
 
 
-router.post('/uploadProjectReport/:projectId', upload.single('report'), uploadProjectReport);
+router.post('/uploadProjectReport/:projectId', upload.array('report',10), uploadProjectReport);
 
 router.get('/getReportByProjectId/:projectId', getReportByProjectId);
 
-router.post('/uploadtaskreport/:taskId',upload.single('report'),uploadTaskReport);
+router.post('/uploadtaskreport/:taskId',upload.array('report'),uploadTaskReport);
 
 
 export default router;

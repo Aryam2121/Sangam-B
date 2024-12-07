@@ -124,12 +124,12 @@ router.route('/getalltasks').get(
 const upload = multer({ dest: 'uploads/' });
 
 router.route('/uploadProjectReport/:projectId').post(
-    upload.single('report'),
+    upload.array('report',10),
     uploadProjectReport
 );
 
 router.route('/uploadtaskreport/:taskId').post(
-    upload.single('report'),
+    upload.array('report',10),
     uploadTaskReport
 );
 
