@@ -6,6 +6,9 @@ const taskReportSchema = new mongoose.Schema({
         ref: 'Task',
         required: true
     },
+    // desc:{
+    //     type:String
+    // },
     reportUrls: [{
         type: String,
         required: true

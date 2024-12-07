@@ -6,6 +6,9 @@ const reportSchema = new mongoose.Schema({
         ref: 'Project',
         required: true
     },
+    // description:{
+    //   type:String
+    // },
     reportUrls: [{
         type: String,
         required: true

@@ -60,6 +60,10 @@ app.use("/api",apiRouter);
 //   },
 // });
 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 
 app.listen(process.env.PORT || 8000, () => {
     console.log(`⚙️ Server is running at port : ${process.env.PORT 

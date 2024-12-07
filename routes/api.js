@@ -9,7 +9,7 @@ import { createPath,getPathById } from "../controllers/geolocation.controller.js
 import { authorizeRoles } from "../middlewares/auth.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId,getAllResources} from "../controllers/resources.controller.js";
-import { uploadProjectReport,getReportByProjectId,uploadTaskReport } from "../controllers/report.controller.js";
+import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport} from "../controllers/report.controller.js";
 import multer from "multer";
 
 const router=Router();
@@ -128,15 +128,26 @@ router.route('/uploadProjectReport/:projectId').post(
     uploadProjectReport
 );
 
+
 router.route('/uploadtaskreport/:taskId').post(
     upload.array('report',10),
     uploadTaskReport
 );
 
+
 router.route('/getReportByProjectId/:projectId').get(
     getReportByProjectId
 );
 
+
+router.route('/updateprojectreport/:projectId').patch( 
+    upload.array('report',10), updateProjectReport
+);
+
+
+router.route('/updatetaskreport/:taskId').patch(
+    upload.array('report',10),updateTaskReport
+);
 
 export default router
 
