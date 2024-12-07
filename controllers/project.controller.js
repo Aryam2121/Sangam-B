@@ -89,16 +89,36 @@ export const createProject = asyncHandler(async (req, res) => {
 });
 
 
+
 export const updateProject = async (req, res) => {
     try {
         const { projectId } = req.params;
         const updates = req.body;
+
+        console.log(`Updating project with ID: ${projectId}`);
+
+
+        if(updates.departments){
+            if (!Array.isArray(updates.departments)) {
+                return res.status(400).json({ message: "Departments should be an array" });
+            }
+            const project = await Project.findById(projectId);
+            if (!project) {
+                return res.status(404).json({ message: "Project not found" });
+            }
+            project.departments.push(...updates.departments);
+            updates.departments = project.departments;
+        }
         const updatedProject = await Project.findByIdAndUpdate(projectId, updates, { new: true });
         res.json({ message: "Project updated successfully", updatedProject });
     } catch (error) {
         res.status(500).json({ message: "Error updating project", error });
     }
 };
+
+
+
+
 
 export const deleteProject = async (req, res) => {
     try {

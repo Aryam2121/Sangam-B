@@ -147,6 +147,26 @@ export const getReportByProjectId = async (req, res) => {
     }
 };
 
+export const getReportByTaskId = async (req, res) => {
+    try {
+        const { taskId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(taskId)) {
+            return res.status(400).json({ error: 'Invalid task ID' });
+        }
+
+        const report = await TaskReport.findById(taskId);
+        if (!report) {
+            return res.status(404).json({ error: 'Report not found' });
+        }
+
+        res.status(200).json({ report });
+    } catch (error) {
+        console.error('Error fetching report:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 
 
 router.post('/uploadProjectReport/:projectId', upload.array('report',10), uploadProjectReport);
@@ -154,6 +174,8 @@ router.post('/uploadProjectReport/:projectId', upload.array('report',10), upload
 router.get('/getReportByProjectId/:projectId', getReportByProjectId);
 
 router.post('/uploadtaskreport/:taskId',upload.array('report'),uploadTaskReport);
+
+router.get('/getReportByTaskId/:taskId', getReportByTaskId);
 
 
 export default router;
