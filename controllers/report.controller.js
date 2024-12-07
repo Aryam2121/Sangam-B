@@ -2,7 +2,7 @@ import Router from 'express';
 import Report from '../models/report.model.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import {Project} from '../models/project.model.js';
-import Task from '../models/taskReport.model.js';
+import {Task} from '../models/tasks.model.js';
 import TaskReport from '../models/taskReport.model.js';
 import mongoose from 'mongoose';
 import multer from 'multer';
@@ -72,6 +72,7 @@ export const uploadProjectReport = async (req, res) => {
     }
 };
 
+
 export const uploadTaskReport = async (req, res) => {
     try {
         const { taskId } = req.params;
@@ -80,44 +81,53 @@ export const uploadTaskReport = async (req, res) => {
             return res.status(400).json({ error: 'Invalid task ID' });
         }
 
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-
-        // Check if the uploaded file is an image
-        if (!req.file.mimetype.startsWith('image/')) {
-            return res.status(400).json({ error: 'Only image files are allowed' });
-        }
-
-        const filePath = req.file.path;
-       // console.log(`Uploading file: ${filePath}`);
-
-        const result = await uploadOnCloudinary(filePath);
-        if (!result) {
-            return res.status(500).json({ error: 'Error uploading file to Cloudinary' });
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'No files uploaded' });
         }
 
         const task = await Task.findById(taskId);
         if (!task) {
-            console.error(`Task not found: ${taskId}`);
             return res.status(404).json({ error: 'Task not found' });
         }
 
-        const report = new TaskReport({
-            _id: task._id,
-            reportUrl: result.secure_url,
-            submittedAt: new Date()
+        const uploadPromises = req.files.map(async (file) => {
+            if (!file.mimetype.startsWith('image/')) {
+                throw new Error('Only image files are allowed');
+            }
+
+            const filePath = file.path;
+            console.log(`Uploading file: ${filePath}`);
+
+            const result = await uploadOnCloudinary(filePath);
+            if (!result) {
+                throw new Error('Error uploading file to Cloudinary');
+            }
+
+            return result.secure_url;
         });
+
+        const reportUrls = await Promise.all(uploadPromises);
+
+        let report = await TaskReport.findById(taskId);
+        if (!report) {
+            report = new TaskReport({
+                _id: task._id,
+                reportUrls: reportUrls,
+                submittedAt: new Date()
+            });
+        } else {
+            report.reportUrls.push(...reportUrls);
+            report.submittedAt = new Date();
+        }
 
         await report.save();
 
-        res.status(200).json({ message: 'Report uploaded successfully', report });
+        res.status(200).json({ message: 'Reports uploaded successfully', report });
     } catch (error) {
-        console.error('Error uploading report:', error);
+        console.error('Error uploading reports:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
-
 
 export const getReportByProjectId = async (req, res) => {
     try {
