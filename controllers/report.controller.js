@@ -22,6 +22,11 @@ export const uploadProjectReport = async (req, res) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
+        if (!req.file.mimetype.startsWith('image/')) {
+            return res.status(400).json({ error: 'Only image files are allowed' });
+        }
+
+
         const filePath = req.file.path;
         //console.log((filePath));
         console.log(`Uploading file: ${filePath}`);
@@ -50,6 +55,8 @@ export const uploadProjectReport = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+
 
 export const getReportByProjectId = async (req, res) => {
     try {
