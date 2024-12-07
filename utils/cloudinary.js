@@ -10,8 +10,8 @@ export const uploadOnCloudinary = async (filePath) => {
     try {
         console.log(`Uploading file to Cloudinary: ${filePath}`);
         const result = await cloudinary.v2.uploader.upload(filePath, {
-            resource_type: 'raw',
-            format: 'pdf'
+            resource_type: 'image',
+            //format: 'pdf'
         });
         console.log('Upload result:', result);
         return result;
