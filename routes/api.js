@@ -19,10 +19,10 @@ const router=Router();
 //     assignProjectToUser
 // )
 
-router.route('/users').get(
-   // authorizeRoles('Main Admin'),
-    getAllUsers
-)
+// router.route('/users').get(
+//    // authorizeRoles('Main Admin'),
+//     getAllUsers
+// )
 
 // router.route('/getUserById').get(
 //     authorizeRoles('Main Admin'),

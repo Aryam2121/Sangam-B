@@ -16,7 +16,7 @@ router.route("/refresh-token").post(refreshAccessToken)
 
 router.route("/change-password").post(verifyJWT, changeCurrentPassword)
 
-router.route("/getalluser").post(getAllUsers)
+router.route("/getalluser").get(getAllUsers)
 
 router.route("/getuserbyid").get(
     getUserById
