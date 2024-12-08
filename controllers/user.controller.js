@@ -247,6 +247,11 @@ export const deleteUser = async (req, res) => {
 };
 
 
+export const getAllUsersByDepartment= async(req,res)=>{
+    const {department}=req.query;
+    
+}
+
 export const changeCurrentPassword= asyncHandler(async(req,res)=>{
     const {oldPassword,newPassword}=req.body
     const user=await User.findById(req.user?._id)

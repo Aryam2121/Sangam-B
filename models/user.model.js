@@ -37,7 +37,7 @@ const userSchema = new Schema(
             enum: ['Main Admin', 'Worker','Department Admin','Officer','Technician','Contractor'],
             required: true
         },
-        department: {
+        department:{
             type: String,
             function() {
                 return this.role !== 'Main Admin';
