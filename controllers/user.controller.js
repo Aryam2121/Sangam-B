@@ -11,7 +11,6 @@ import multer from "multer";
 
 const upload = multer(); // Initialize multer
 
-
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -32,9 +31,9 @@ export const registerUser = asyncHandler(
     //console.log("email: ", email);
     console.log("Request Body:",req.body);
 
-    if (
+    if(
         [fullName, email, username, password,role].some((field) => field?.trim() === "")
-    ) {
+    ){
         throw new ApiError(400, "All fields are required")
     }
 
@@ -74,10 +73,8 @@ export const registerUser = asyncHandler(
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
 
-} )
+})
 
-
-  
 export const getUserById = async (req, res) => {
     try {
         const {id}=req.body;
@@ -194,6 +191,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 //     }
 // })
 
+
 export const logoutUser=asyncHandler(async(req,res)=>{
     await User.findByIdAndUpdate(
         req.user._id,
@@ -215,6 +213,7 @@ export const logoutUser=asyncHandler(async(req,res)=>{
     .clearCookie("refreshToken",options)
     .json(new ApiResponse(200,{},"User logged out"))
 })
+
 
 // export const assignProjectToUser = async (req, res) => {
 //     try {
@@ -247,10 +246,28 @@ export const deleteUser = async (req, res) => {
 };
 
 
-export const getAllUsersByDepartment= async(req,res)=>{
-    const {department}=req.query;
-    
-}
+export const getAllUsersByDepartmentId = asyncHandler(async (req, res) => {
+    try {
+        const { departmentId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(departmentId)) {
+            return res.status(400).json({ error: 'Invalid department ID' });
+        }
+
+        const users = await User.find({ department: departmentId });
+
+        if (!users || users.length === 0) {
+            return res.status(404).json({ error: 'No users found in this department' });
+        }
+
+        res.status(200).json({ users });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
 
 export const changeCurrentPassword= asyncHandler(async(req,res)=>{
     const {oldPassword,newPassword}=req.body

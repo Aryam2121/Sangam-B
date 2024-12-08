@@ -6,9 +6,12 @@ const taskReportSchema = new mongoose.Schema({
         ref: 'Task',
         required: true
     },
-    // desc:{
-    //     type:String
-    // },
+    name:{
+        type:String
+    },
+    desc:{
+        type:String
+    },
     reportUrls: [{
         type: String,
         required: true

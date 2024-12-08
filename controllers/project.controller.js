@@ -9,7 +9,7 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 export const createProject = asyncHandler(async (req, res) => {
     try {
         console.log("Request body:", req.body);
-        const { name, description,departments,resources, projectAdmin, workerIds,taskIds} = req.body;
+        const { name, description,departments,resources, projectAdmin, workerIds,taskIds,projectMLId} = req.body;
         if (!name || !description || !departments || !projectAdmin || !resources || !workerIds || !taskIds) {
             return res.status(400).json({ error: 'All fields are required' });
         }
@@ -71,6 +71,7 @@ export const createProject = asyncHandler(async (req, res) => {
         const newProject = await Project.create({
             name,
             description,
+            projectMLId,
             departments:departmentObjectIds,
             resources,
             projectAdmin: existingProjectAdmin.username,

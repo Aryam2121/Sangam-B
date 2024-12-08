@@ -5,6 +5,9 @@ const projectSchema = new Schema({
         type: String,
         required: true,
     },
+    projectMLId:{
+        type: String
+    },
     description: String,
     departments: [{
         type: Schema.Types.ObjectId,

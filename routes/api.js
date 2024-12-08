@@ -10,9 +10,14 @@ import { authorizeRoles } from "../middlewares/auth.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId,getAllResources} from "../controllers/resources.controller.js";
 import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport,getReportByTaskId} from "../controllers/report.controller.js";
+import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
+
+
 import multer from "multer";
 
+
 const router=Router();
+
 
 // router.route('/assignProjectToUser').post(
 //     authorizeRoles('Main Admin','Project Admin'),
@@ -29,53 +34,66 @@ const router=Router();
 //     getUserById
 // )
 
+
 router.route("/project").post(
     createProject
 )
+
 
 // router.route('/getProject').get(
 //     getProjects
 // )
 
+
 router.route('/getprojectbyid/:id').get(
     getProjectById
 )
+
 
 router.route('/deleteprojectbyid').delete(
     deleteProject
 )
 
+
 router.route('/updateproject/:projectId').patch(
     updateProject
 )
+
 
 router.route('/project/task').post(
     createTask
 )
 
+
 router.route('/project/getTaskById/:taskId').get(
     getTaskById
 )
+
 
 router.route('/createDepartment').post(
     createDepartment
 )
 
+
 router.route('/getalldep').get(
     getAllDepartments
 )
+
 
 router.route('/project/:projectId/tasks').get(
     getAllTasksByProjectId
 )
 
+
 router.route('/project/task/:taskId').patch(
     updateTask
 )
 
+
 router.route('/getalltasksbyuserid/:userId').get(
     getAllTasksByUserId
 )
+
 
 router.route('/getallprojects').get(
     getAllProjects
@@ -92,29 +110,36 @@ router.route('/path').post(
     createPath
 )
 
+
 router.route('/path/:id').get(
     getPathById
 )
+
 
 router.route('/resource').post(
     createResource
 )
 
+
 router.route('/resource/assign').post(
     assignResourceToProject
 )
+
 
 router.route('/resource/:resourceId').get(
     getResourceById
 )
 
+
 router.route('/project/:projectId/resources').get(
     getResourcesByProjectId
 )
 
+
 router.route('/getallresources').get(
     getAllResources
 )
+
 
 router.route('/getalltasks').get(
     getAllTasks
@@ -149,9 +174,16 @@ router.route('/updatetaskreport/:taskId').patch(
     upload.array('report',10),updateTaskReport
 );
 
+
 router.route('/getreportbytaskid/:taskId').get(
        getReportByTaskId
 )
+
+
+router.post('/projectMLModel', createProjectMLModel);
+router.get('/projectMLModel/:id', getProjectMLModelById);
+router.patch('/projectMLModel/:id', updateProjectMLModelById);
+
 
 export default router
 
