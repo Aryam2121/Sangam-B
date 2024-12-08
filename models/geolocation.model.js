@@ -1,33 +1,26 @@
 import mongoose, { Schema } from "mongoose";
-
-const pathPointSchema = new Schema({
-    lat: {
-        type: Number,
-        required: true
-    },
-    lng: {
-        type: Number,
-        required: true
-    },
-    id: {
-        type: String,
-        required: true
-    }
-});
-
+import { v4 as uuidv4 } from 'uuid';
 
 const pathSchema = new Schema({
+    uuid: {
+        type: String,
+        default: uuidv4,
+        unique: true
+    },
     projectId: {
         type: String,
         required: true
     },
     path: [
         {
-            id: {
-                type: String,
+            lat: {
+                type: Number,
                 required: true
             },
-            points: [pathPointSchema]
+            lng: {
+                type: Number,
+                required: true
+            }
         }
     ],
     timestamp: {

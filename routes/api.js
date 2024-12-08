@@ -3,7 +3,7 @@ import { Router } from "express";
 import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
 import { createTask,getTaskById,getTasks,updateTask,deleteTask , getAllTasksByUserId,getAllTasks} from "../controllers/tasks.controller.js";
 import { createDepartment, getAllDepartments } from "../controllers/department.controller.js";
-import { createPath,getPathById } from "../controllers/geolocation.controller.js";
+import { createPath,getPathById,updatePath } from "../controllers/geolocation.controller.js";
 //import { createMessage,deleteMessage,getMessageById,getMessagesByDiscussion } from "../controllers/message.controller.js";
 //import { createDiscussion,getDiscussions,addMessage } from "../controllers/discussion.controller";
 import { authorizeRoles } from "../middlewares/auth.middleware.js"
@@ -113,6 +113,10 @@ router.route('/path').post(
 
 router.route('/path/:id').get(
     getPathById
+)
+
+router.route('/path/:id').patch(
+    updatePath
 )
 
 
