@@ -1,8 +1,8 @@
 import { Router } from "express";
-//import { assignProjectToUser,getAllUsers,getUserById } from "../controllers/user.controller.js";
+import { getAllUsers,getUserById } from "../controllers/user.controller.js";
 import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
 import { createTask,getTaskById,getTasks,updateTask,deleteTask , getAllTasksByUserId,getAllTasks} from "../controllers/tasks.controller.js";
-import { createDepartment, getAllDepartments } from "../controllers/department.controller.js";
+import { createDepartment,getAllDepartments } from "../controllers/department.controller.js";
 import { createPath,getPathById,updatePath } from "../controllers/geolocation.controller.js";
 //import { createMessage,deleteMessage,getMessageById,getMessagesByDiscussion } from "../controllers/message.controller.js";
 //import { createDiscussion,getDiscussions,addMessage } from "../controllers/discussion.controller";

@@ -7,7 +7,9 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import authRouter from './routes/auth.js'
 import apiRouter from './routes/api.js'
-dotenv.config()
+
+dotenv.config();
+
 connectDB()
 .then(() => {
     console.log("MONGO db connection successful !!!");

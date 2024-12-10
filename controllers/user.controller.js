@@ -7,6 +7,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 //import {Project} from "../models/project.model.js"
 import multer from "multer";
+import mongoose from 'mongoose';
 
 
 const upload = multer(); // Initialize multer
@@ -66,7 +67,7 @@ export const registerUser = asyncHandler(
     )
 
     if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user")
+        throw new ApiError(500, "Something went wrong while kregistering the user")
     }
 
     return res.status(201).json(
@@ -89,12 +90,12 @@ export const getUserById = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
     try {
-        const { role } = req.query;
-        const query = role ? { role } : {};
-
-        const users = await User.find(query).populate('department assignedProjects');
+        //console.log(req);
+        const users = await User.find();
         res.status(200).json(users);
-    } catch (error) {
+    }  catch (error) {
+        console.error('Error fetching users:', error);
+        console.error('Error details:', error.message, error.stack);
         res.status(500).json({ error: 'Server error' });
     }
 };
