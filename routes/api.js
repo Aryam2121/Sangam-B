@@ -11,7 +11,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId,getAllResources} from "../controllers/resources.controller.js";
 import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport,getReportByTaskId} from "../controllers/report.controller.js";
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
-import { createSeminar, } from "../controllers/training.controller.js";
+import { createSeminar, getAllSeminars} from "../controllers/training.controller.js";
 
 import multer from "multer";
 
@@ -190,6 +190,9 @@ router.patch('/projectMLModel/:id', updateProjectMLModelById);
 
 router.route('/createseminar').post(
     createSeminar
+)
+router.route('/getallseminars').get(
+    getAllSeminars
 )
 
 export default router

@@ -27,6 +27,16 @@ export const createSeminar = async (req, res) => {
 };
 
 
+export const getAllSeminars = async (req, res) => {
+    try {
+        const seminars = await Seminar.find();
+        res.status(200).json(seminars);
+    } catch (error) {
+        console.error('Error getting seminars:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
 
 
 
