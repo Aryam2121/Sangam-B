@@ -1,12 +1,11 @@
 import mongoose, {Schema} from "mongoose"
-import User from "../models/training.model.js"
+//import User from "../models/training.model.js"
 
 
 const seminarSchema=new Schema(
     {
-        authorName:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'User',
+        publisherName:{
+            type:String,
             required:true
         },
         seminarLink:{

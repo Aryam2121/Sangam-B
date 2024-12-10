@@ -191,6 +191,7 @@ router.patch('/projectMLModel/:id', updateProjectMLModelById);
 router.route('/createseminar').post(
     createSeminar
 )
+
 router.route('/getallseminars').get(
     getAllSeminars
 )

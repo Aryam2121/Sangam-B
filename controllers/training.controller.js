@@ -5,15 +5,15 @@ import Seminar from "../models/training.model.js";
 
 
 export const createSeminar = async (req, res) => {
-    const { authorName, seminarLink, description } = req.body;
+    const { publisherName, seminarLink, description } = req.body;
 
-    if (!authorName || !seminarLink) {
+    if (!publisherName || !seminarLink) {
         return res.status(400).json({ message: "Author name and seminar link are required." });
     }
 
     try {
         const newSeminar = new Seminar({
-            authorName,
+            publisherName,
             seminarLink,
             description
         });
