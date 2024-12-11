@@ -14,13 +14,12 @@ export const createCompletedPath = async (req, res) => {
             return res.status(400).json({ error: 'All required fields must be provided' });
         }
 
-        // Validate each list in completedPath
         for (const path of completedPath) {
             if (!path._id) {
                 path._id = uuidv4();
             }
-            if (!path.points) {
-                path.points = [];
+            if (!path.points || path.points.length === 0) {
+                return res.status(400).json({ error: 'Points array cannot be null or empty' });
             }
             for (const point of path.points) {
                 if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {

@@ -43,26 +43,47 @@ export const createPath = async (req, res) => {
     }
 };
 
-export const getPathById = async (req, res) => {
+export const getPathByProjectId = async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!id) {
-            throw new ApiError(400, "Path ID is required");
+        const { projectId } = req.params;
+        if (!projectId) {
+            return res.status(400).json({ error: 'Project ID is required' });
         }
 
-        const path = await Path.findOne({ projectId: id });
+        const path = await Path.findOne({ projectId });
 
         if (!path) {
-            throw new ApiError(404, "Path not found");
+            return res.status(404).json({ error: 'Path not found' });
         }
 
-        res.status(200).json({ path });
+        res.status(200).json(path);
     } catch (error) {
         console.error('Error getting path:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
 
+
+
+export const getPathById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ error: 'Path ID is required' });
+        }
+
+        const path = await Path.findById(id);
+
+        if (!path) {
+            return res.status(404).json({ error: 'Path not found' });
+        }
+
+        res.status(200).json(path);
+    } catch (error) {
+        console.error('Error getting path:', error);
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
 
 export const updatePath = async (req, res) => {
     try {

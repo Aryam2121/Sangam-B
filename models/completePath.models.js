@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { v4 as uuidv4 } from 'uuid';
+import { Project } from "./project.model.js";
 
 const pathPointSchema = new Schema({
     lat: {
@@ -18,7 +19,8 @@ const completedPathSchema = new Schema({
         default: uuidv4
     },
     projectId: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Project',
         required: true
     },
     completedPath: [
