@@ -212,6 +212,10 @@ router.route('/getallnewpaths').get(
     getAllNewPaths
 )
 
+router.route('/createpath').post(
+    createPath
+)
+
 export default router
 
 
