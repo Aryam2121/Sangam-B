@@ -9,11 +9,9 @@ import { v4 as uuidv4 } from 'uuid';
 export const createCompletedPath = async (req, res) => {
     try {
         const { projectId, completedPath, timestamp, distance } = req.body;
-
         if (!projectId || !completedPath || !timestamp) {
             return res.status(400).json({ error: 'All required fields must be provided' });
         }
-
         for (const path of completedPath) {
             if (!path._id) {
                 path._id = uuidv4();
@@ -43,4 +41,53 @@ export const createCompletedPath = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+
+
+export const updateCompletedPath = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { completedPath } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ error: 'Path ID is required' });
+        }
+
+        const path = await CompletedPath.findById(id);
+
+        if (!path) {
+            return res.status(404).json({ error: 'Path not found' });
+        }
+
+        // Validate and update each list in completedPath
+        for (const newPath of completedPath) {
+            if (!newPath._id) {
+                newPath._id = uuidv4();
+            }
+            if (!newPath.points || newPath.points.length === 0) {
+                return res.status(400).json({ error: 'Points array cannot be null or empty' });
+            }
+            for (const point of newPath.points) {
+                if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {
+                    return res.status(400).json({ error: 'Invalid coordinates in completedPath' });
+                }
+            }
+
+            const existingPath = path.completedPath.find(p => p._id === newPath._id);
+            if (existingPath) {
+                existingPath.points.push(...newPath.points);
+            } else {
+                path.completedPath.push(newPath);
+            }
+        }
+
+        await path.save();
+        res.status(200).json(path);
+    } catch (error) {
+        console.error('Error updating completed path:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
 

@@ -14,11 +14,7 @@ const pathPointSchema = new Schema({
 });
 
 const completedPathSchema = new Schema({
-    uuid: {
-        type: String,
-        default: uuidv4
-    },
-    projectId: {
+    _id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Project',
         required: true

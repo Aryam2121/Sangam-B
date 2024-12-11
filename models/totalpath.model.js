@@ -13,12 +13,9 @@ const pathPointSchema = new Schema({
 });
 
 const pathSchema = new Schema({
-    uuid: {
-        type: String,
-        default: uuidv4
-    },
-    projectId: {
-        type: String,
+    _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Project',
         required: true
     },
     totalpath: [

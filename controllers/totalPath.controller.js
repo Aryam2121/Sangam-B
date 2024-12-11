@@ -6,9 +6,9 @@ import {Project} from '../models/project.model.js';
 
 export const createPath = async (req, res) => {
     try {
-        const { projectId, totalpath, timestamp, distance } = req.body;
+        const { _id, totalpath, timestamp, distance } = req.body;
 
-        if (!projectId || !totalpath || !timestamp) {
+        if (!_id || !totalpath || !timestamp) {
             return res.status(400).json({ error: 'All required fields must be provided' });
         }
 
@@ -29,7 +29,7 @@ export const createPath = async (req, res) => {
 
         const newPath = new Path({
             uuid: uuidv4(),
-            projectId,
+            _id,
             totalpath,
             timestamp,
             distance
@@ -42,27 +42,6 @@ export const createPath = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
-export const getPathByProjectId = async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        if (!projectId) {
-            return res.status(400).json({ error: 'Project ID is required' });
-        }
-
-        const path = await Path.findOne({ projectId });
-
-        if (!path) {
-            return res.status(404).json({ error: 'Path not found' });
-        }
-
-        res.status(200).json(path);
-    } catch (error) {
-        console.error('Error getting path:', error);
-        res.status(500).json({ message: 'Server error', error });
-    }
-};
-
 
 
 export const getPathById = async (req, res) => {
@@ -84,6 +63,8 @@ export const getPathById = async (req, res) => {
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
+
 
 export const updatePath = async (req, res) => {
     try {
@@ -131,3 +112,4 @@ export const updatePath = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
