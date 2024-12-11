@@ -13,7 +13,7 @@ import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjec
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
 import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
 import { createNewPath,getNewPath,getAllNewPaths } from "../controllers/newPath.controller.js";
-import { createCompletedPath } from "../controllers/completedPath.controller.js";
+import { createCompletedPath,getCompletedPathById } from "../controllers/completedPath.controller.js";
 import multer from "multer";
 
 
@@ -219,6 +219,10 @@ router.route('/createpath').post(
 
 router.route('/createcompletedpath').post(
     createCompletedPath
+)
+
+router.route('/getcompletedpathbyid/:id').get(
+    getCompletedPathById
 )
 
 export default router

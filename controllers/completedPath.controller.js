@@ -42,6 +42,26 @@ export const createCompletedPath = async (req, res) => {
     }
 };
 
+export const getCompletedPathById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ error: 'Path ID is required' });
+        }
+
+        const path = await CompletedPath.findById(id);
+
+        if (!path) {
+            return res.status(404).json({ error: 'Path not found' });
+        }
+
+        res.status(200).json(path);
+    } catch (error) {
+        console.error('Error getting completed path:', error);
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
 
 
 export const updateCompletedPath = async (req, res) => {
