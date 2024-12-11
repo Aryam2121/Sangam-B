@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
-import {Path} from '../models/geolocation.model.js';
+import {Path} from '../models/totalpath.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import {Project} from '../models/project.model.js';
 
 
 export const createPath = async (req, res) => {
     try {
-        const { projectId, totalpath, completedPath, timestamp, distance } = req.body;
+        const { projectId, totalpath, timestamp, distance } = req.body;
 
-        if (!projectId || !totalpath || !completedPath || !timestamp) {
+        if (!projectId || !totalpath || !timestamp) {
             return res.status(400).json({ error: 'All required fields must be provided' });
         }
 
@@ -17,8 +17,8 @@ export const createPath = async (req, res) => {
             if (!path._id) {
                 path._id = uuidv4();
             }
-            if (!path.points) {
-                path.points = [];
+            if (!path.points || path.points.length === 0) {
+                return res.status(400).json({ error: 'Points array cannot be null or empty' });
             }
             for (const point of path.points) {
                 if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {
@@ -27,26 +27,10 @@ export const createPath = async (req, res) => {
             }
         }
 
-        // Validate each list in completedPath
-        for (const path of completedPath) {
-            if (!path._id) {
-                path._id = uuidv4();
-            }
-            if (!path.points) {
-                path.points = [];
-            }
-            for (const point of path.points) {
-                if (typeof point.lat !== 'number' || typeof point.lng !== 'number') {
-                    return res.status(400).json({ error: 'Invalid coordinates in completedPath' });
-                }
-            }
-        }
-
         const newPath = new Path({
             uuid: uuidv4(),
             projectId,
             totalpath,
-            completedPath,
             timestamp,
             distance
         });

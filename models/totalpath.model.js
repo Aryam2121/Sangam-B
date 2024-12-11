@@ -22,15 +22,16 @@ const pathSchema = new Schema({
         required: true
     },
     totalpath: [
-             
-            [pathPointSchema]
-    
-        
-    ],
-    completedPath: [
-        
-            [pathPointSchema],
-               
+        {
+            _id:{
+                type: String,
+                default: uuidv4
+            },
+            points:{
+            type:[pathPointSchema],
+            required: true
+            }
+        }    
     ],
     timestamp: {
         type: Date,

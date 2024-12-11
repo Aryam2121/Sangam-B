@@ -3,7 +3,7 @@ import { Router } from "express";
 import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
 import { createTask,getTaskById,getTasks,updateTask,deleteTask , getAllTasksByUserId,getAllTasks} from "../controllers/tasks.controller.js";
 import { createDepartment,getAllDepartments } from "../controllers/department.controller.js";
-import { createPath,getPathById,updatePath } from "../controllers/geolocation.controller.js";
+import { createPath,getPathById,updatePath } from "../controllers/totalPath.controller.js";
 //import { createMessage,deleteMessage,getMessageById,getMessagesByDiscussion } from "../controllers/message.controller.js";
 //import { createDiscussion,getDiscussions,addMessage } from "../controllers/discussion.controller";
 import { authorizeRoles } from "../middlewares/auth.middleware.js"
@@ -13,6 +13,7 @@ import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjec
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
 import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
 import { createNewPath,getNewPath,getAllNewPaths } from "../controllers/newPath.controller.js";
+import { createCompletedPath } from "../controllers/completedPath.controller.js";
 import multer from "multer";
 
 
@@ -120,6 +121,7 @@ router.route('/path/:id').patch(
 )
 
 
+
 router.route('/resource').post(
     createResource
 )
@@ -214,6 +216,10 @@ router.route('/getallnewpaths').get(
 
 router.route('/createpath').post(
     createPath
+)
+
+router.route('/createcompletedpath').post(
+    createCompletedPath
 )
 
 export default router
