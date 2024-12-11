@@ -13,6 +13,7 @@ const pathPointSchema = new Schema({
     }
 });
 
+
 const completedPathSchema = new Schema({
     _id: {
         type: mongoose.Schema.Types.ObjectId,

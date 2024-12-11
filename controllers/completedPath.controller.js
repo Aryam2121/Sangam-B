@@ -27,8 +27,7 @@ export const createCompletedPath = async (req, res) => {
         }
 
         const newCompletedPath = new CompletedPath({
-            uuid: uuidv4(),
-            projectId,
+            _id: projectId,
             completedPath,
             timestamp,
             distance
