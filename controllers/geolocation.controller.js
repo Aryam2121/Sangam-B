@@ -3,21 +3,20 @@ import {Path} from '../models/geolocation.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import {Project} from '../models/project.model.js';
 
+
 export const createPath = async (req, res) => {
     try {
-        const { projectId, path, timestamp, distance } = req.body;
-
+        const {projectId, path, timestamp, distance } = req.body; 
         if (!projectId || !path || !timestamp || !distance) {
             return res.status(400).json({ error: 'All fields are required' });
         }
-
         const newPath = new Path({
+            uuid: uuidv4(),
             projectId,
             path,
             timestamp,
             distance
         });
-
         await newPath.save();
         res.status(201).json(newPath);
     } catch (error) {
@@ -42,6 +41,7 @@ export const getPathById = async (req, res) => {
 
         res.status(200).json({ path });
     } catch (error) {
+        console.error('Error getting path:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };

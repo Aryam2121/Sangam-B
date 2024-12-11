@@ -104,3 +104,17 @@ export const getAllResources = async (req, res) => {
         res.status(500).json({ message: "Error fetching all resources", error });
     }
 };
+
+export const deleteResourceById = async(req, res) => {
+    try {
+        const { id } = req.params;
+        const resource = await Resource.findByIdAndDelete(id);
+        if(!resource) {
+            return res.status(404).json({ message: "Resource not found" });
+        }
+        res.status(200).json({ message: "Resource deleted successfully" });
+    } catch (error) {
+        //console.error('Error deleting resource:', error);
+        res.status(500).json({ message: "Error deleting resource", error });
+    }
+};

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllUsers,getUserById } from "../controllers/user.controller.js";
+//import { getAllUsers,getUserById } from "../controllers/user.controller.js";
 import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
 import { createTask,getTaskById,getTasks,updateTask,deleteTask , getAllTasksByUserId,getAllTasks} from "../controllers/tasks.controller.js";
 import { createDepartment,getAllDepartments } from "../controllers/department.controller.js";
@@ -8,11 +8,11 @@ import { createPath,getPathById,updatePath } from "../controllers/geolocation.co
 //import { createDiscussion,getDiscussions,addMessage } from "../controllers/discussion.controller";
 import { authorizeRoles } from "../middlewares/auth.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId,getAllResources} from "../controllers/resources.controller.js";
+import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId,getAllResources,deleteResourceById} from "../controllers/resources.controller.js";
 import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport,getReportByTaskId} from "../controllers/report.controller.js";
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
-import { createSeminar, getAllSeminars} from "../controllers/training.controller.js";
-
+import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
+import { createNewPath,getNewPath } from "../controllers/newPath.controller.js";
 import multer from "multer";
 
 
@@ -139,16 +139,13 @@ router.route('/project/:projectId/resources').get(
     getResourcesByProjectId
 )
 
-
 router.route('/getallresources').get(
     getAllResources
 )
 
-
 router.route('/getalltasks').get(
     getAllTasks
 )
-
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -188,12 +185,27 @@ router.post('/projectMLModel', createProjectMLModel);
 router.get('/projectMLModel/:id', getProjectMLModelById);
 router.patch('/projectMLModel/:id', updateProjectMLModelById);
 
+
 router.route('/createseminar').post(
     createSeminar
 )
 
+
 router.route('/getallseminars').get(
     getAllSeminars
+)
+
+
+router.route('deleteresource/:id').delete(
+    deleteResourceById
+)
+
+
+router.route('/newpath').post(
+    createNewPath
+)
+router.route('/getnewpath/:id').get(
+    getNewPath
 )
 
 export default router
