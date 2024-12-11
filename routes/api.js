@@ -12,7 +12,7 @@ import { createResource,assignResourceToProject,getResourceById,getResourcesByPr
 import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport,getReportByTaskId} from "../controllers/report.controller.js";
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
 import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
-import { createNewPath,getNewPath } from "../controllers/newPath.controller.js";
+import { createNewPath,getNewPath,getAllNewPaths } from "../controllers/newPath.controller.js";
 import multer from "multer";
 
 
@@ -206,6 +206,10 @@ router.route('/newpath').post(
 )
 router.route('/getnewpath/:id').get(
     getNewPath
+)
+
+router.route('/getallnewpaths').get(
+    getAllNewPaths
 )
 
 export default router

@@ -44,3 +44,15 @@ export const getNewPath = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+
+export const getAllNewPaths = async (req, res) => {
+    try {
+        const newPaths = await NewPath.find();
+        res.status(200).json(newPaths);
+    } catch (error) {
+        console.error('Error fetching all new paths:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
