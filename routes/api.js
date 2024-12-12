@@ -14,6 +14,7 @@ import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById }
 import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
 import { createNewPath,getNewPath,getAllNewPaths } from "../controllers/newPath.controller.js";
 import { createCompletedPath,getCompletedPathById } from "../controllers/completedPath.controller.js";
+import { updateCompletedPath } from "../controllers/completedPath.controller.js";
 import multer from "multer";
 
 
@@ -224,6 +225,15 @@ router.route('/createcompletedpath').post(
 router.route('/getcompletedpathbyid/:id').get(
     getCompletedPathById
 )
+
+router.route('/updatecompletepath/:id').patch(
+    updateCompletedPath
+)
+
+router.route('updatetotalpath').patch(
+    updatePath
+)
+router.route('update')
 
 export default router
 

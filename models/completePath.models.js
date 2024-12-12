@@ -22,7 +22,7 @@ const completedPathSchema = new Schema({
     },
     completedPath: [
         {
-            _id: {
+           _id: {
                 type: String,
                 default: uuidv4
             },
