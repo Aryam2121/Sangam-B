@@ -17,6 +17,10 @@ const projectSchema = new Schema({
         type: String,
         required: true,
     },
+    projectAdmin: {
+        type: String,
+        required: true,
+    },
     workerIds: [{ 
         type: String,
         ref: 'User',

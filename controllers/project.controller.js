@@ -5,6 +5,7 @@ import {Task} from '../models/tasks.model.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
 import {Department} from '../models/department.model.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { logActivity } from "../utils/activityLogger.js";
 
 export const createProject = asyncHandler(async (req, res) => {
     try {
@@ -81,6 +82,15 @@ export const createProject = asyncHandler(async (req, res) => {
             endDate: new Date(),
             status: 'active'
         });
+        await logActivity({
+            entityType: "project",
+            action: "created",
+            entityId: newProject._id,
+            title: `Project created: ${newProject.name}`,
+            description: `Status ${newProject.status}`,
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
 
         res.status(201).json(newProject);
     } catch (error) {
@@ -111,6 +121,17 @@ export const updateProject = async (req, res) => {
             updates.departments = project.departments;
         }
         const updatedProject = await Project.findByIdAndUpdate(projectId, updates, { new: true });
+        if (updatedProject) {
+            await logActivity({
+                entityType: "project",
+                action: "updated",
+                entityId: updatedProject._id,
+                title: `Project updated: ${updatedProject.name}`,
+                description: "Project details modified",
+                actorName: req.user?.fullName || req.user?.username || "System",
+                actorId: req.user?._id,
+            });
+        }
         res.json({ message: "Project updated successfully", updatedProject });
     } catch (error) {
         res.status(500).json({ message: "Error updating project", error });
@@ -125,7 +146,18 @@ export const deleteProject = async (req, res) => {
     try {
         console.log(req);
         const { projectId } = req.params;
-        await Project.findByIdAndDelete(projectId);
+        const deleted = await Project.findByIdAndDelete(projectId);
+        if (deleted) {
+            await logActivity({
+                entityType: "project",
+                action: "deleted",
+                entityId: deleted._id,
+                title: `Project deleted: ${deleted.name}`,
+                description: "Project removed from workspace",
+                actorName: req.user?.fullName || req.user?.username || "System",
+                actorId: req.user?._id,
+            });
+        }
         res.json({ message: "Project deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting project", error });
@@ -168,11 +200,7 @@ export const getAllTasksByProjectId = async (req, res) => {
         }
         const tasks = await Task.find({ project: projectId }).populate('assignedTo');
 
-        if (!tasks || tasks.length === 0) {
-            return res.status(404).json({ error: 'No tasks found for this project' });
-        }
-
-        res.status(200).json(tasks);
+        res.status(200).json(tasks || []);
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Server error' });
@@ -182,7 +210,7 @@ export const getAllTasksByProjectId = async (req, res) => {
 
 export const getAllProjects=async (req,res)=>{
     try {
-        const projects=await Project.find();
+        const projects=await Project.find().populate('departments', 'name');
         res.status(200).json(projects);
     } catch (error) {
         res.status(500).json({message:"Eroor in fetching projects",error});

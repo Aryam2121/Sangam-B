@@ -27,7 +27,25 @@ const userSchema = new Schema(
         },
         password: {
             type: String,
-            required: [true, 'Password is required']
+            required: function () {
+                return this.authProvider !== "google";
+            },
+        },
+        authProvider: {
+            type: String,
+            enum: ["local", "google"],
+            default: "local",
+        },
+        firebaseUid: {
+            type: String,
+            sparse: true,
+            unique: true,
+        },
+        photoURL: {
+            type: String,
+        },
+        fcmToken: {
+            type: String,
         },
         refreshToken: {
             type: String
@@ -55,11 +73,11 @@ const userSchema = new Schema(
 )
 
 userSchema.pre("save", async function (next) {
-    if(!this.isModified("password")) return next();
+    if (!this.isModified("password") || !this.password) return next();
 
-    this.password = await bcryptjs.hash(this.password, 10)
-    next()
-})
+    this.password = await bcryptjs.hash(this.password, 10);
+    next();
+});
 
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcryptjs.compare(password, this.password)

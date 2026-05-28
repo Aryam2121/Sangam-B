@@ -1,0 +1,107 @@
+{
+  "departments": [
+    { "name": "Water", "description": "Water supply and sanitation projects." },
+    { "name": "Roads", "description": "Road construction and maintenance." },
+    { "name": "Electricity", "description": "Power distribution and upgrades." },
+    { "name": "Municipal", "description": "City facilities and public works." },
+    { "name": "Gas", "description": "Gas pipeline and safety projects." }
+  ],
+  "users": [
+    {
+      "username": "mainadmin",
+      "email": "mainadmin@sangam.local",
+      "fullName": "Main Admin",
+      "password": "Sangam123",
+      "role": "Main Admin"
+    },
+    {
+      "username": "deptadmin",
+      "email": "deptadmin@sangam.local",
+      "fullName": "Department Admin",
+      "password": "Sangam123",
+      "role": "Department Admin",
+      "department": "Water"
+    },
+    {
+      "username": "officer",
+      "email": "officer@sangam.local",
+      "fullName": "Field Officer",
+      "password": "Sangam123",
+      "role": "Officer",
+      "department": "Water"
+    },
+    {
+      "username": "worker1",
+      "email": "worker1@sangam.local",
+      "fullName": "Site Worker One",
+      "password": "Sangam123",
+      "role": "Worker",
+      "department": "Water"
+    },
+    {
+      "username": "worker2",
+      "email": "worker2@sangam.local",
+      "fullName": "Site Worker Two",
+      "password": "Sangam123",
+      "role": "Worker",
+      "department": "Roads"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Metro Drain Upgrade",
+      "description": "Upgrade primary drainage lines with smart monitoring sensors.",
+      "departments": ["Water", "Municipal"],
+      "resources": "PVC Pipes, Smart Sensors, Pump Units",
+      "projectAdmin": "deptadmin",
+      "workerIds": ["worker1", "worker2"],
+      "taskTitles": [
+        "Site Survey",
+        "Pipe Installation",
+        "Sensor Calibration"
+      ]
+    },
+    {
+      "name": "Outer Ring Road Resurfacing",
+      "description": "Resurface high-traffic road segments and improve signage.",
+      "departments": ["Roads"],
+      "resources": "Asphalt Mix, Road Rollers, Safety Barriers",
+      "projectAdmin": "deptadmin",
+      "workerIds": ["worker2"],
+      "taskTitles": [
+        "Traffic Diversion Setup",
+        "Surface Milling",
+        "Road Painting"
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "name": "PVC Pipe",
+      "description": "Heavy-duty pipes for drainage lines.",
+      "unit": "meters",
+      "assignToProject": "Metro Drain Upgrade",
+      "quantity": 240
+    },
+    {
+      "name": "Road Asphalt",
+      "description": "Hot mix asphalt for road resurfacing.",
+      "unit": "tons",
+      "assignToProject": "Outer Ring Road Resurfacing",
+      "quantity": 120
+    },
+    {
+      "name": "Water Pump",
+      "description": "High-capacity pump unit for dewatering.",
+      "unit": "units"
+    }
+  ],
+  "chat": [
+    { "sender": "Aryaman", "receiver": "Brijesh", "text": "Can you review the task checklist?" },
+    { "sender": "Brijesh", "receiver": "Aryaman", "text": "Sure, will update by EOD." }
+  ],
+  "discussion": [
+    { "department": "Water Department", "user": "Aryaman", "content": "Pipe delivery arrived at site." },
+    { "department": "Water Department", "user": "Field Officer", "content": "Scheduling safety briefing at 4 PM." }
+  ]
+}

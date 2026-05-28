@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Resource } from '../models/resources.model.js';
 import { Project } from '../models/project.model.js';
+import { logActivity } from "../utils/activityLogger.js";
 
 
 // Controller to create a new resource
@@ -9,6 +10,15 @@ export const createResource = async (req, res) => {
         const { name, description, unit } = req.body;
         const resource = new Resource({ name, description, unit });
         await resource.save();
+        await logActivity({
+            entityType: "resource",
+            action: "created",
+            entityId: resource._id,
+            title: `Resource created: ${resource.name}`,
+            description: `${resource.unit}${resource.description ? ` · ${resource.description}` : ""}`,
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
         res.status(201).json({ message: "Resource created successfully", resource });
     } catch (error) {
         res.status(500).json({ message: "Error creating resource", error });
@@ -44,6 +54,15 @@ export const assignResourceToProject = async (req, res) => {
         }
 
         await resource.save();
+        await logActivity({
+            entityType: "resource",
+            action: "assigned",
+            entityId: resource._id,
+            title: `Resource assigned: ${resource.name}`,
+            description: `Assigned quantity ${quantity} to project ${projectId}`,
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
         res.status(200).json({ message: "Resource assigned to project successfully", resource });
     } catch (error) {
         res.status(500).json({ message: "Error assigning resource to project", error });
@@ -84,11 +103,7 @@ export const getResourcesByProjectId = async (req, res) => {
         const resources = await Resource.find({ 'assignments.project': projectId })
             .populate('assignments.project', 'name description');
 
-        if (!resources || resources.length === 0) {
-            return res.status(404).json({ error: 'No resources found for this project' });
-        }
-
-        res.status(200).json(resources);
+        res.status(200).json(resources || []);
     } catch (error) {
         res.status(500).json({ message: "Error fetching resources for project", error });
     }
@@ -105,6 +120,44 @@ export const getAllResources = async (req, res) => {
     }
 };
 
+export const updateResourceById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description, unit } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'Invalid resource ID' });
+        }
+
+        const updated = await Resource.findByIdAndUpdate(
+            id,
+            {
+                ...(name && { name }),
+                ...(description !== undefined && { description }),
+                ...(unit && { unit }),
+            },
+            { new: true, runValidators: true }
+        ).populate('assignments.project', 'name');
+
+        if (!updated) {
+            return res.status(404).json({ message: 'Resource not found' });
+        }
+        await logActivity({
+            entityType: "resource",
+            action: "updated",
+            entityId: updated._id,
+            title: `Resource updated: ${updated.name}`,
+            description: "Resource details modified",
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
+
+        res.status(200).json({ message: 'Resource updated successfully', resource: updated });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating resource', error });
+    }
+};
+
 export const deleteResourceById = async(req, res) => {
     try {
         const { id } = req.params;
@@ -112,6 +165,15 @@ export const deleteResourceById = async(req, res) => {
         if(!resource) {
             return res.status(404).json({ message: "Resource not found" });
         }
+        await logActivity({
+            entityType: "resource",
+            action: "deleted",
+            entityId: resource._id,
+            title: `Resource deleted: ${resource.name}`,
+            description: "Resource removed from workspace",
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
         res.status(200).json({ message: "Resource deleted successfully" });
     } catch (error) {
         //console.error('Error deleting resource:', error);

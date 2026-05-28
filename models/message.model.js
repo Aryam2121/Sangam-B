@@ -1,24 +1,24 @@
-// import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-// const messageSchema = new Schema({
-//     discussion: {
-//         type: Schema.Types.ObjectId,
-//         ref: 'Discussion',
-//        // required: true,
-//     },
-//     sender: {
-//         type: Schema.Types.ObjectId,
-//         ref: 'User',
-//        // required: true,
-//     },
-//     content: {
-//         type: String,
-//        // required: true,
-//     },
-//     createdAt: {
-//         type: Date,
-//         default: Date.now,
-//     },
-// });
+const messageSchema = new Schema(
+	{
+		sender: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		receiver: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		text: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+	},
+	{ timestamps: true }
+);
 
-// export const Message=mongoose.model('Message', messageSchema);
+export const Message = mongoose.model("Message", messageSchema);

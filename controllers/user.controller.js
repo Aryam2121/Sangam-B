@@ -47,6 +47,9 @@ export const registerUser = asyncHandler(
     }
     //console.log(req.files);
     if (role !== 'Main Admin') {
+        if (!department?.trim()) {
+            throw new ApiError(400, "Department is required for this role");
+        }
         const existingDepartment = await Department.findOne({ name: department });
         if (!existingDepartment) {
             throw new ApiError(404, "Department not found");
@@ -71,34 +74,37 @@ export const registerUser = asyncHandler(
     }
 
     return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
+        new ApiResponse(201, createdUser, "User registered Successfully")
     )
 
 })
 
-export const getUserById = async (req, res) => {
-    try {
-        const {id}=req.body;
-        const user = await User.findById(id).populate('department');
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+export const getUserById = asyncHandler(async (req, res) => {
+    const { id } = req.body;
+
+    if (!id) {
+        throw new ApiError(400, "User ID is required");
     }
-};
+
+    const user = await User.findById(id).populate('department').select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, user, "User retrieved successfully")
+    );
+});
 
 
-export const getAllUsers = async (req, res) => {
-    try {
-        //console.log(req);
-        const users = await User.find();
-        res.status(200).json(users);
-    }  catch (error) {
-        console.error('Error fetching users:', error);
-        console.error('Error details:', error.message, error.stack);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
+export const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find().select("-password -refreshToken").populate('department');
+
+    res.status(200).json(
+        new ApiResponse(200, users, "All users retrieved successfully")
+    );
+});
 
 
 export const loginUser = asyncHandler(async (req, res) => {
@@ -122,7 +128,8 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
     }
 
     return res
@@ -143,7 +150,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 
 export const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorized request");
     }
@@ -162,18 +169,21 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         }
         const options = {
             httpOnly: true,
-            secure: true
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
         }
 
-        const { accessToken, newRefreshToken } = generateAccessAndRefreshToken(user._id);
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id);
         return res
             .status(200)
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", newRefreshToken, options)
             .json(
-                200,
-                { accessToken, refreshToken: newRefreshToken },
-                "Access Token refreshed"
+                new ApiResponse(
+                    200,
+                    { accessToken, refreshToken: newRefreshToken },
+                    "Access Token refreshed successfully"
+                )
             )
     } catch (error) {
         throw new ApiError(401, error?.message || "Invalid refrsh token")
@@ -207,7 +217,8 @@ export const logoutUser=asyncHandler(async(req,res)=>{
     )
     const options={
         httpOnly:true,
-        secure:true
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
     }
     return res.status(200)
     .clearCookie("accessToken",options)
@@ -236,36 +247,47 @@ export const logoutUser=asyncHandler(async(req,res)=>{
 // };
 
 
-export const deleteUser = async (req, res) => {
-    try {
-        const { userId } = req.params;
-        await User.findByIdAndDelete(userId);
-        res.json({ message: "User deleted successfully" });
-    }catch(error) {
-        res.status(500).json({ message: "Error deleting user", error });
+export const deleteUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    if (!userId) {
+        throw new ApiError(400, "User ID is required");
     }
-};
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, {}, "User deleted successfully")
+    );
+});
 
 
 export const getAllUsersByDepartmentId = asyncHandler(async (req, res) => {
-    try {
-        const { departmentId } = req.params;
+    const { departmentId } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(departmentId)) {
-            return res.status(400).json({ error: 'Invalid department ID' });
-        }
-
-        const users = await User.find({ department: departmentId });
-
-        if (!users || users.length === 0) {
-            return res.status(404).json({ error: 'No users found in this department' });
-        }
-
-        res.status(200).json({ users });
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'Server error' });
+    if (!departmentId) {
+        throw new ApiError(400, "Department ID is required");
     }
+
+    if (!mongoose.Types.ObjectId.isValid(departmentId)) {
+        throw new ApiError(400, "Invalid department ID format");
+    }
+
+    const users = await User.find({ department: departmentId })
+        .select("-password -refreshToken")
+        .populate('department');
+
+    if (!users || users.length === 0) {
+        throw new ApiError(404, "No users found in this department");
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, users, "Users retrieved successfully")
+    );
 });
 
 

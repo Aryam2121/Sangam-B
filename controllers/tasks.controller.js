@@ -3,6 +3,7 @@ import { Task } from '../models/tasks.model.js';
 import { Project } from '../models/project.model.js';
 import {User} from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
+import { logActivity } from "../utils/activityLogger.js";
 
 
 export const createTask = async (req, res) => {
@@ -15,6 +16,15 @@ export const createTask = async (req, res) => {
         //console.log(req.body);
         const task = new Task({ title,taskId, description, assignedTo, project, status, dueDate });
         await task.save();
+        await logActivity({
+            entityType: "task",
+            action: "created",
+            entityId: task._id,
+            title: `Task created: ${task.title}`,
+            description: `Status ${task.status || "Pending"}`,
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
         res.status(201).json({ message: "Task created successfully", task });
     } catch (error) {
         console.log(error)
@@ -31,6 +41,15 @@ export const updateTask = async (req, res)=>{
         if (!updatedTask) {
             return res.status(404).json({ message: "Task not found" });
         }
+        await logActivity({
+            entityType: "task",
+            action: updates?.status ? "status_changed" : "updated",
+            entityId: updatedTask._id,
+            title: `Task updated: ${updatedTask.title}`,
+            description: updates?.status ? `Status changed to ${updates.status}` : "Task details edited",
+            actorName: req.user?.fullName || req.user?.username || "System",
+            actorId: req.user?._id,
+        });
         res.json({ message: "Task updated successfully", updatedTask });
     } catch (error) {
         res.status(500).json({ message: "Error updating task", error });
@@ -41,7 +60,18 @@ export const updateTask = async (req, res)=>{
 export const deleteTask = async (req, res) => {
     try {
         const { taskId } = req.params;
-        await Task.findByIdAndDelete(taskId);
+        const deleted = await Task.findByIdAndDelete(taskId);
+        if (deleted) {
+            await logActivity({
+                entityType: "task",
+                action: "deleted",
+                entityId: deleted._id,
+                title: `Task deleted: ${deleted.title}`,
+                description: "Task removed from workspace",
+                actorName: req.user?.fullName || req.user?.username || "System",
+                actorId: req.user?._id,
+            });
+        }
         res.json({ message: "Task deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error deleting task", error });
@@ -86,11 +116,7 @@ export const getAllTasksByUserId = async (req, res) => {
 
         const tasks = await Task.find({ assignedTo: userId }).populate('assignedTo').populate('project');
 
-        if (!tasks || tasks.length === 0) {
-            return res.status(404).json({ error: 'No tasks found for this user' });
-        }
-
-        res.status(200).json({ tasks });
+        res.status(200).json({ tasks: tasks || [] });
     } catch (error) {
         console.error('Error fetching tasks:', error);
         res.status(500).json({ error: 'Server error' });
@@ -100,8 +126,25 @@ export const getAllTasksByUserId = async (req, res) => {
 
 export const getAllTasks = async (req, res) => {
     try {
-        const tasks = await Task.find();
-        res.status(200).json(tasks);
+        const { status, assignee, department, dueFrom, dueTo, project } = req.query || {};
+        const filter = {};
+        if (status) filter.status = status;
+        if (project) filter.project = project;
+        if (assignee) filter.assignedTo = assignee;
+        if (dueFrom || dueTo) {
+            filter.dueDate = {};
+            if (dueFrom) filter.dueDate.$gte = new Date(dueFrom);
+            if (dueTo) filter.dueDate.$lte = new Date(dueTo);
+        }
+
+        const tasks = await Task.find(filter)
+            .populate("assignedTo", "fullName username department")
+            .populate("project", "name status");
+
+        const filteredByDepartment = department
+            ? tasks.filter((task) => (task.assignedTo?.department || "").toLowerCase() === String(department).toLowerCase())
+            : tasks;
+        res.status(200).json(filteredByDepartment);
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: "Error fetching tasks", error });

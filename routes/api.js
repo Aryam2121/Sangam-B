@@ -1,49 +1,32 @@
 import { Router } from "express";
-//import { getAllUsers,getUserById } from "../controllers/user.controller.js";
-import { createProject,getProjects,deleteProject,updateProject, getProjectById,getAllTasksByProjectId,getAllProjects } from "../controllers/project.controller.js";
-import { createTask,getTaskById,getTasks,updateTask,deleteTask , getAllTasksByUserId,getAllTasks} from "../controllers/tasks.controller.js";
-import { createDepartment,getAllDepartments } from "../controllers/department.controller.js";
+import { createProject, deleteProject, updateProject, getProjectById, getAllTasksByProjectId, getAllProjects } from "../controllers/project.controller.js";
+import { createTask, getTaskById, updateTask, deleteTask, getAllTasksByUserId, getAllTasks } from "../controllers/tasks.controller.js";
+import { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } from "../controllers/department.controller.js";
 import { createPath,updatePath,getPathById} from "../controllers/totalPath.controller.js";
-//import { createMessage,deleteMessage,getMessageById,getMessagesByDiscussion } from "../controllers/message.controller.js";
-//import { createDiscussion,getDiscussions,addMessage } from "../controllers/discussion.controller";
-import { authorizeRoles } from "../middlewares/auth.middleware.js"
-import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { createResource,assignResourceToProject,getResourceById,getResourcesByProjectId,getAllResources,deleteResourceById} from "../controllers/resources.controller.js";
+import { createResource, assignResourceToProject, getResourceById, getResourcesByProjectId, getAllResources, updateResourceById, deleteResourceById } from "../controllers/resources.controller.js";
 import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport,getReportByTaskId} from "../controllers/report.controller.js";
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
 import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
 import { createNewPath,getNewPath,getAllNewPaths } from "../controllers/newPath.controller.js";
 import { createCompletedPath,getCompletedPathById,updateCompletedPath } from "../controllers/completedPath.controller.js";
 import multer from "multer";
+import { getChatHistory, sendChatMessage } from "../controllers/chat.controller.js";
+import { getDiscussionHistory, createDiscussionMessage } from "../controllers/discussionForum.controller.js";
+import { getDashboardSummary } from "../controllers/dashboard.controller.js";
+import { assistantChat } from "../controllers/assistant.controller.js";
+import { globalSearch } from "../controllers/search.controller.js";
+import { getNotifications } from "../controllers/notifications.controller.js";
+import { getWorkerDashboard } from "../controllers/workerDashboard.controller.js";
+import { createBid, deleteBid, getAllBids, updateBid } from "../controllers/bid.controller.js";
+import { getActivityTimeline } from "../controllers/activity.controller.js";
 
 
 const router=Router();
 
 
-// router.route('/assignProjectToUser').post(
-//     authorizeRoles('Main Admin','Project Admin'),
-//     assignProjectToUser
-// )
-
-// router.route('/users').get(
-//    // authorizeRoles('Main Admin'),
-//     getAllUsers
-// )
-
-// router.route('/getUserById').get(
-//     authorizeRoles('Main Admin'),
-//     getUserById
-// )
-
-
 router.route("/project").post(
     createProject
 )
-
-
-// router.route('/getProject').get(
-//     getProjects
-// )
 
 
 router.route('/getprojectbyid/:id').get(
@@ -55,7 +38,7 @@ router.route('/getpathbyid/:id').get(
 )
 
 
-router.route('/deleteprojectbyid').delete(
+router.route('/project/:projectId').delete(
     deleteProject
 )
 
@@ -84,6 +67,10 @@ router.route('/getalldep').get(
     getAllDepartments
 )
 
+router.route('/department/:id').get(getDepartmentById)
+router.route('/department/:id').patch(updateDepartment)
+router.route('/department/:id').delete(deleteDepartment)
+
 
 router.route('/project/:projectId/tasks').get(
     getAllTasksByProjectId
@@ -92,6 +79,10 @@ router.route('/project/:projectId/tasks').get(
 
 router.route('/project/task/:taskId').patch(
     updateTask
+)
+
+router.route('/project/task/:taskId').delete(
+    deleteTask
 )
 
 
@@ -181,6 +172,39 @@ router.route('/getreportbytaskid/:taskId').get(
        getReportByTaskId
 )
 
+router.route('/chat/history/:contact').get(
+    getChatHistory
+)
+
+router.route('/chat/send').post(
+    sendChatMessage
+)
+
+router.route('/discussion/history/:department').get(
+    getDiscussionHistory
+)
+
+router.route('/discussion/send').post(
+    createDiscussionMessage
+)
+
+router.route('/dashboard/summary').get(
+    getDashboardSummary
+)
+
+router.route('/assistant/chat').post(
+    assistantChat
+)
+
+router.route('/search').get(globalSearch)
+
+router.route('/notifications').get(getNotifications)
+router.route('/activity/timeline').get(getActivityTimeline)
+router.route('/bids').get(getAllBids).post(createBid)
+router.route('/bids/:bidId').patch(updateBid).delete(deleteBid)
+
+router.route('/worker/dashboard').get(getWorkerDashboard)
+
 
 router.post('/projectMLModel', createProjectMLModel);
 router.get('/projectMLModel/:id', getProjectMLModelById);
@@ -197,7 +221,9 @@ router.route('/getallseminars').get(
 )
 
 
-router.route('deleteresource/:id').delete(
+router.route('/resource/update/:id').patch(updateResourceById)
+
+router.route('/deleteresource/:id').delete(
     deleteResourceById
 )
 
@@ -213,10 +239,6 @@ router.route('/getallnewpaths').get(
     getAllNewPaths
 )
 
-router.route('/createpath').post(
-    createPath
-)
-
 router.route('/createcompletedpath').post(
     createCompletedPath
 )
@@ -227,10 +249,6 @@ router.route('/getcompletedpathbyid/:id').get(
 
 router.route('/updatecompletepath/:id').patch(
     updateCompletedPath
-)
-
-router.route('/updatetotalpath/:id').patch(
-    updatePath
 )
 
 export default router
