@@ -23,7 +23,7 @@ logger.info('Starting SANGAM backend server...');
 
 const corsOrigin = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
-    : ['https://sangam-b.onrender.com'];
+    : ['https://sangam-frontend-two.vercel.app'];
 connectDB()
 .then(() => {
     logger.info("MongoDB connection successful");
