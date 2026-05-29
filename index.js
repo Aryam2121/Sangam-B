@@ -24,6 +24,21 @@ logger.info('Starting SANGAM backend server...');
 const corsOrigin = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
     : ['https://sangam-frontend-two.vercel.app','https://sangam-b.onrender.com'];
+
+// Create a Set of allowed origins and a reusable CORS options object
+const allowedOrigins = new Set(corsOrigin);
+
+const corsOptions = {
+    origin: function(origin, callback) {
+        // Allow non-browser requests like curl (no origin) and same-origin
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.has(origin)) return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
 connectDB()
 .then(() => {
     logger.info("MongoDB connection successful");
@@ -38,16 +53,14 @@ app.set("trust proxy", 1);
 const server = http.createServer(app);
 const io = new SocketServer(server, {
     cors: {
-        origin: corsOrigin,
+        origin: Array.from(allowedOrigins),
         credentials: true
     }
 });
 
-// CORS configuration
-app.use(cors({
-    origin: corsOrigin,
-    credentials: true
-}))
+// CORS configuration - use a strict origin checker and enable preflight
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Security headers middleware
 app.use(securityHeaders);
