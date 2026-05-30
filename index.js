@@ -21,12 +21,19 @@ initFirebaseAdmin();
 // Log application startup
 logger.info('Starting SANGAM backend server...');
 
-const corsOrigin = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
-    : ['https://sangam-frontend-two.vercel.app','https://sangam-b.onrender.com'];
+const defaultCorsOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://sangam-frontend-two.vercel.app',
+    'https://sangam-b.onrender.com',
+];
 
-// Create a Set of allowed origins and a reusable CORS options object
-const allowedOrigins = new Set(corsOrigin);
+const envCorsOrigins = (process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const allowedOrigins = new Set([...defaultCorsOrigins, ...envCorsOrigins]);
 
 const corsOptions = {
     origin: function(origin, callback) {
@@ -36,8 +43,8 @@ const corsOptions = {
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
 };
 connectDB()
 .then(() => {
