@@ -6,10 +6,15 @@ import {asyncHandler} from '../utils/asyncHandler.js';
 import {Department} from '../models/department.model.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { logActivity } from "../utils/activityLogger.js";
+import { pickFields } from "../utils/pickFields.js";
+
+const PROJECT_UPDATE_FIELDS = [
+    'name', 'description', 'departments', 'resources', 'projectAdmin',
+    'workerIds', 'taskIds', 'status', 'startDate', 'endDate', 'projectMLId',
+];
 
 export const createProject = asyncHandler(async (req, res) => {
     try {
-        console.log("Request body:", req.body);
         const { name, description,departments,resources, projectAdmin, workerIds,taskIds,projectMLId} = req.body;
         if (!name || !description || !departments || !projectAdmin || !resources || !workerIds || !taskIds) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -104,9 +109,7 @@ export const createProject = asyncHandler(async (req, res) => {
 export const updateProject = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const updates = req.body;
-
-        console.log(`Updating project with ID: ${projectId}`);
+        const updates = pickFields(req.body, PROJECT_UPDATE_FIELDS);
 
 
         if(updates.departments){
@@ -144,7 +147,6 @@ export const updateProject = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
     try {
-        console.log(req);
         const { projectId } = req.params;
         const deleted = await Project.findByIdAndDelete(projectId);
         if (deleted) {

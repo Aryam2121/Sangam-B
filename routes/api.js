@@ -2,15 +2,14 @@ import { Router } from "express";
 import { createProject, deleteProject, updateProject, getProjectById, getAllTasksByProjectId, getAllProjects } from "../controllers/project.controller.js";
 import { createTask, getTaskById, updateTask, deleteTask, getAllTasksByUserId, getAllTasks } from "../controllers/tasks.controller.js";
 import { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } from "../controllers/department.controller.js";
-import { createPath,updatePath,getPathById} from "../controllers/totalPath.controller.js";
+import { createPath, updatePath, getPathById } from "../controllers/totalPath.controller.js";
 import { createResource, assignResourceToProject, getResourceById, getResourcesByProjectId, getAllResources, updateResourceById, deleteResourceById } from "../controllers/resources.controller.js";
-import { uploadProjectReport,getReportByProjectId,uploadTaskReport ,updateProjectReport,updateTaskReport,getReportByTaskId} from "../controllers/report.controller.js";
+import { uploadProjectReport, getReportByProjectId, uploadTaskReport, updateProjectReport, updateTaskReport, getReportByTaskId } from "../controllers/report.controller.js";
 import { createProjectMLModel, getProjectMLModelById, updateProjectMLModelById } from '../controllers/projectml.controller.js';
-import { createSeminar , getAllSeminars} from "../controllers/training.controller.js";
-import { createNewPath,getNewPath,getAllNewPaths } from "../controllers/newPath.controller.js";
-import { createCompletedPath,getCompletedPathById,updateCompletedPath } from "../controllers/completedPath.controller.js";
-import multer from "multer";
-import { getChatHistory, sendChatMessage } from "../controllers/chat.controller.js";
+import { createSeminar, getAllSeminars } from "../controllers/training.controller.js";
+import { createNewPath, getNewPath, getAllNewPaths } from "../controllers/newPath.controller.js";
+import { createCompletedPath, getCompletedPathById, updateCompletedPath } from "../controllers/completedPath.controller.js";
+import { getChatHistory, getChatContacts, sendChatMessage } from "../controllers/chat.controller.js";
 import { getDiscussionHistory, createDiscussionMessage } from "../controllers/discussionForum.controller.js";
 import { getDashboardSummary } from "../controllers/dashboard.controller.js";
 import { assistantChat } from "../controllers/assistant.controller.js";
@@ -19,239 +18,307 @@ import { getNotifications } from "../controllers/notifications.controller.js";
 import { getWorkerDashboard } from "../controllers/workerDashboard.controller.js";
 import { createBid, deleteBid, getAllBids, updateBid } from "../controllers/bid.controller.js";
 import { getActivityTimeline } from "../controllers/activity.controller.js";
+import { verifyJWT, authorizeRoles } from "../middlewares/auth.middleware.js";
+import { imageUpload } from "../middlewares/upload.middleware.js";
+import { validateBody, validateMongoIds } from "../middlewares/validation.middleware.js";
+import {
+  projectValidators,
+  taskValidators,
+  departmentValidators,
+  resourceValidators,
+  apiValidators,
+} from "../utils/validators.js";
 
+const router = Router();
 
-const router=Router();
+router.use(verifyJWT);
 
+const adminOnly = authorizeRoles('Main Admin', 'Department Admin');
+const managers = authorizeRoles('Main Admin', 'Department Admin', 'Officer');
+const workersAndUp = authorizeRoles('Main Admin', 'Department Admin', 'Officer', 'Worker');
 
 router.route("/project").post(
-    createProject
-)
-
+  managers,
+  validateBody(apiValidators.validateProjectCreate),
+  createProject
+);
 
 router.route('/getprojectbyid/:id').get(
-    getProjectById
-)
+  validateMongoIds('id'),
+  getProjectById
+);
 
 router.route('/getpathbyid/:id').get(
-    getPathById
-)
-
+  validateMongoIds('id'),
+  getPathById
+);
 
 router.route('/project/:projectId').delete(
-    deleteProject
-)
-
+  validateMongoIds('projectId'),
+  managers,
+  deleteProject
+);
 
 router.route('/updateproject/:projectId').patch(
-    updateProject
-)
-
+  validateMongoIds('projectId'),
+  managers,
+  validateBody(projectValidators.validateProjectUpdate),
+  updateProject
+);
 
 router.route('/project/task').post(
-    createTask
-)
-
+  managers,
+  validateBody(apiValidators.validateTaskCreate),
+  createTask
+);
 
 router.route('/project/getTaskById/:taskId').get(
-    getTaskById
-)
-
+  validateMongoIds('taskId'),
+  getTaskById
+);
 
 router.route('/createDepartment').post(
-    createDepartment
-)
+  adminOnly,
+  validateBody(departmentValidators.validateDepartmentCreation),
+  createDepartment
+);
 
+router.route('/getalldep').get(getAllDepartments);
 
-router.route('/getalldep').get(
-    getAllDepartments
-)
-
-router.route('/department/:id').get(getDepartmentById)
-router.route('/department/:id').patch(updateDepartment)
-router.route('/department/:id').delete(deleteDepartment)
-
+router.route('/department/:id').get(
+  validateMongoIds('id'),
+  getDepartmentById
+);
+router.route('/department/:id').patch(
+  validateMongoIds('id'),
+  adminOnly,
+  validateBody(departmentValidators.validateDepartmentCreation),
+  updateDepartment
+);
+router.route('/department/:id').delete(
+  validateMongoIds('id'),
+  adminOnly,
+  deleteDepartment
+);
 
 router.route('/project/:projectId/tasks').get(
-    getAllTasksByProjectId
-)
-
+  validateMongoIds('projectId'),
+  getAllTasksByProjectId
+);
 
 router.route('/project/task/:taskId').patch(
-    updateTask
-)
+  validateMongoIds('taskId'),
+  workersAndUp,
+  validateBody(taskValidators.validateTaskUpdate),
+  updateTask
+);
 
 router.route('/project/task/:taskId').delete(
-    deleteTask
-)
-
+  validateMongoIds('taskId'),
+  managers,
+  deleteTask
+);
 
 router.route('/getalltasksbyuserid/:userId').get(
-    getAllTasksByUserId
-)
+  validateMongoIds('userId'),
+  getAllTasksByUserId
+);
 
-
-router.route('/getallprojects').get(
-    getAllProjects
-)
-
-
-// router.route('/project/task').post(
-//     authorizeRoles('Project Admin'),
-//     createTask
-// )
-
+router.route('/getallprojects').get(getAllProjects);
 
 router.route('/path').post(
-    createPath
-)
+  managers,
+  validateBody(apiValidators.validatePathCreate),
+  createPath
+);
 
 router.route('/path/:id').patch(
-    updatePath
-)
-
-
+  validateMongoIds('id'),
+  managers,
+  validateBody(apiValidators.validatePathUpdate),
+  updatePath
+);
 
 router.route('/resource').post(
-    createResource
-)
-
+  managers,
+  validateBody(resourceValidators.validateResourceCreation),
+  createResource
+);
 
 router.route('/resource/assign').post(
-    assignResourceToProject
-)
-
+  managers,
+  validateBody(apiValidators.validateResourceAssign),
+  assignResourceToProject
+);
 
 router.route('/resource/:resourceId').get(
-    getResourceById
-)
-
+  validateMongoIds('resourceId'),
+  getResourceById
+);
 
 router.route('/project/:projectId/resources').get(
-    getResourcesByProjectId
-)
+  validateMongoIds('projectId'),
+  getResourcesByProjectId
+);
 
-router.route('/getallresources').get(
-    getAllResources
-)
+router.route('/getallresources').get(getAllResources);
 
-router.route('/getalltasks').get(
-    getAllTasks
-)
-
-const upload = multer({ dest: 'uploads/' });
+router.route('/getalltasks').get(getAllTasks);
 
 router.route('/uploadProjectReport/:projectId').post(
-    upload.array('report',10),
-    uploadProjectReport
+  validateMongoIds('projectId'),
+  workersAndUp,
+  imageUpload.array('report', 10),
+  uploadProjectReport
 );
-
 
 router.route('/uploadtaskreport/:taskId').post(
-    upload.array('report',10),
-    uploadTaskReport
+  validateMongoIds('taskId'),
+  workersAndUp,
+  imageUpload.array('report', 10),
+  uploadTaskReport
 );
-
 
 router.route('/getReportByProjectId/:projectId').get(
-    getReportByProjectId
+  validateMongoIds('projectId'),
+  getReportByProjectId
 );
 
-
-router.route('/updateprojectreport/:projectId').patch( 
-    upload.array('report',10), updateProjectReport
+router.route('/updateprojectreport/:projectId').patch(
+  validateMongoIds('projectId'),
+  workersAndUp,
+  imageUpload.array('report', 10),
+  updateProjectReport
 );
-
 
 router.route('/updatetaskreport/:taskId').patch(
-    upload.array('report',10),updateTaskReport
+  validateMongoIds('taskId'),
+  workersAndUp,
+  imageUpload.array('report', 10),
+  updateTaskReport
 );
 
-
 router.route('/getreportbytaskid/:taskId').get(
-       getReportByTaskId
-)
+  validateMongoIds('taskId'),
+  getReportByTaskId
+);
 
-router.route('/chat/history/:contact').get(
-    getChatHistory
-)
+router.route('/chat/contacts').get(getChatContacts);
+
+router.route('/chat/history/:contact').get(getChatHistory);
 
 router.route('/chat/send').post(
-    sendChatMessage
-)
+  validateBody(apiValidators.validateChatMessage),
+  sendChatMessage
+);
 
-router.route('/discussion/history/:department').get(
-    getDiscussionHistory
-)
+router.route('/discussion/history/:department').get(getDiscussionHistory);
 
 router.route('/discussion/send').post(
-    createDiscussionMessage
-)
+  validateBody(apiValidators.validateDiscussionMessage),
+  createDiscussionMessage
+);
 
-router.route('/dashboard/summary').get(
-    getDashboardSummary
-)
+router.route('/dashboard/summary').get(getDashboardSummary);
 
 router.route('/assistant/chat').post(
-    assistantChat
-)
+  validateBody(apiValidators.validateAssistantChat),
+  assistantChat
+);
 
-router.route('/search').get(globalSearch)
+router.route('/search').get(globalSearch);
 
-router.route('/notifications').get(getNotifications)
-router.route('/activity/timeline').get(getActivityTimeline)
-router.route('/bids').get(getAllBids).post(createBid)
-router.route('/bids/:bidId').patch(updateBid).delete(deleteBid)
+router.route('/notifications').get(getNotifications);
 
-router.route('/worker/dashboard').get(getWorkerDashboard)
+router.route('/activity/timeline').get(getActivityTimeline);
 
+router.route('/bids').get(getAllBids).post(
+  managers,
+  validateBody(apiValidators.validateBidCreate),
+  createBid
+);
 
-router.post('/projectMLModel', createProjectMLModel);
-router.get('/projectMLModel/:id', getProjectMLModelById);
-router.patch('/projectMLModel/:id', updateProjectMLModelById);
+router.route('/bids/:bidId').patch(
+  validateMongoIds('bidId'),
+  managers,
+  updateBid
+).delete(
+  validateMongoIds('bidId'),
+  managers,
+  deleteBid
+);
 
+router.route('/worker/dashboard').get(getWorkerDashboard);
+
+router.post(
+  '/projectMLModel',
+  managers,
+  validateBody(apiValidators.validateProjectMLCreate),
+  createProjectMLModel
+);
+router.get(
+  '/projectMLModel/:id',
+  validateMongoIds('id'),
+  getProjectMLModelById
+);
+router.patch(
+  '/projectMLModel/:id',
+  validateMongoIds('id'),
+  managers,
+  validateBody(apiValidators.validateProjectMLUpdate),
+  updateProjectMLModelById
+);
 
 router.route('/createseminar').post(
-    createSeminar
-)
+  adminOnly,
+  validateBody(apiValidators.validateSeminarCreate),
+  createSeminar
+);
 
+router.route('/getallseminars').get(getAllSeminars);
 
-router.route('/getallseminars').get(
-    getAllSeminars
-)
-
-
-router.route('/resource/update/:id').patch(updateResourceById)
+router.route('/resource/update/:id').patch(
+  validateMongoIds('id'),
+  managers,
+  validateBody(apiValidators.validateResourceUpdate),
+  updateResourceById
+);
 
 router.route('/deleteresource/:id').delete(
-    deleteResourceById
-)
-
+  validateMongoIds('id'),
+  managers,
+  deleteResourceById
+);
 
 router.route('/newpath').post(
-    createNewPath
-)
-router.route('/getnewpath/:id').get(
-    getNewPath
-)
+  managers,
+  validateBody(apiValidators.validateNewPathCreate),
+  createNewPath
+);
 
-router.route('/getallnewpaths').get(
-    getAllNewPaths
-)
+router.route('/getnewpath/:id').get(
+  validateMongoIds('id'),
+  getNewPath
+);
+
+router.route('/getallnewpaths').get(getAllNewPaths);
 
 router.route('/createcompletedpath').post(
-    createCompletedPath
-)
+  managers,
+  validateBody(apiValidators.validateCompletedPathCreate),
+  createCompletedPath
+);
 
 router.route('/getcompletedpathbyid/:id').get(
-    getCompletedPathById
-)
+  validateMongoIds('id'),
+  getCompletedPathById
+);
 
 router.route('/updatecompletepath/:id').patch(
-    updateCompletedPath
-)
+  validateMongoIds('id'),
+  managers,
+  validateBody(apiValidators.validateCompletedPathUpdate),
+  updateCompletedPath
+);
 
-export default router
-
-
-
+export default router;

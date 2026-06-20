@@ -1,12 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import {Path} from '../models/totalpath.model.js';
-import { ApiError } from '../utils/ApiError.js';
-import {Project} from '../models/project.model.js';
+import { pickFields } from '../utils/pickFields.js';
+
+const PATH_CREATE_FIELDS = ['_id', 'totalpath', 'timestamp', 'distance'];
+const PATH_UPDATE_FIELDS = ['totalpath'];
 
 
 export const createPath = async (req, res) => {
     try {
-        const { _id, totalpath, timestamp, distance } = req.body;
+        const { _id, totalpath, timestamp, distance } = pickFields(req.body, PATH_CREATE_FIELDS);
 
         if (!_id || !totalpath || !timestamp) {
             return res.status(400).json({ error: 'All required fields must be provided' });
@@ -69,7 +71,7 @@ export const getPathById = async (req, res) => {
 export const updatePath = async (req, res) => {
     try {
         const { id } = req.params;
-        const { totalpath } = req.body;
+        const { totalpath } = pickFields(req.body, PATH_UPDATE_FIELDS);
 
         if (!id || !totalpath) {
             return res.status(400).json({ error: 'Path ID and totalpath are required' });

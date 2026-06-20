@@ -6,11 +6,7 @@ import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const getWorkerDashboard = asyncHandler(async (req, res) => {
-  const userId = req.query.userId;
-
-  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ success: false, message: "Valid userId is required" });
-  }
+  const userId = req.user._id.toString();
 
   const user = await User.findById(userId).select("fullName username role department");
   if (!user) {

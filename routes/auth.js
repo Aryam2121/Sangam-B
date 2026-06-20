@@ -48,7 +48,7 @@ router.route("/getuserbyid").get(
     getUserById
 )
 
-router.route('/getuserbydepartmentId').get(
+router.route('/getuserbydepartmentId/:departmentId').get(
     verifyJWT,
     getAllUsersByDepartmentId
 )

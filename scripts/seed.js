@@ -64,13 +64,18 @@ const seed = async () => {
     return acc;
   }, {});
 
+  const defaultPassword = process.env.SEED_DEFAULT_PASSWORD;
+  if (!defaultPassword) {
+    throw new Error("SEED_DEFAULT_PASSWORD is required to run the seed script.");
+  }
+
   const userDocs = [];
   for (const user of payload.users || []) {
     const created = new User({
       username: user.username,
       email: user.email,
       fullName: user.fullName,
-      password: user.password,
+      password: defaultPassword,
       role: user.role,
       department: user.department || undefined,
     });
@@ -84,7 +89,7 @@ const seed = async () => {
       username: `user${i + 1}`,
       email: `user${i + 1}@sangam.local`,
       fullName: `User ${i + 1}`,
-      password: "Sangam123",
+      password: defaultPassword,
       role,
       department: dept?.name,
     });

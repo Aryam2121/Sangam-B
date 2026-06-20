@@ -1,6 +1,9 @@
 import { Bid } from "../models/bid.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { logActivity } from "../utils/activityLogger.js";
+import { pickFields } from "../utils/pickFields.js";
+
+const BID_UPDATE_FIELDS = ['contractor', 'resource', 'price', 'expiresAt', 'status'];
 
 const mapBid = (bid) => ({
   ...bid.toObject(),
@@ -40,7 +43,7 @@ export const createBid = asyncHandler(async (req, res) => {
 
 export const updateBid = asyncHandler(async (req, res) => {
   const { bidId } = req.params;
-  const updates = { ...req.body };
+  const updates = pickFields(req.body, BID_UPDATE_FIELDS);
   if ("price" in updates) updates.price = Number(updates.price);
   if ("expiresAt" in updates) updates.expiresAt = new Date(updates.expiresAt);
 

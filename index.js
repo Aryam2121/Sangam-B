@@ -14,8 +14,14 @@ import { securityHeaders, apiSecurityHeaders, preventRateLimitBypass, validateIn
 import { Message } from "./models/message.model.js";
 import { DiscussionMessage } from "./models/discussionForum.model.js";
 import { initFirebaseAdmin } from "./utils/firebaseAdmin.js";
+import { socketAuthMiddleware, getUserDisplayName } from "./middlewares/socketAuth.middleware.js";
+import { ADMIN_ROLES } from "./utils/roles.js";
+
+import mongoose from "mongoose";
+import { validateEnv } from "./utils/validateEnv.js";
 
 dotenv.config();
+validateEnv();
 initFirebaseAdmin();
 
 // Log application startup
@@ -138,6 +144,18 @@ const uploadLimiter = rateLimit({
     skip: (req) => process.env.NODE_ENV === 'development'
 });
 
+const refreshLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: {
+        success: false,
+        message: 'Too many token refresh attempts. Please try again later.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => process.env.NODE_ENV === 'development',
+});
+
 // Health check route
 app.get("/", (req, res) => {
     res.json({
@@ -148,10 +166,15 @@ app.get("/", (req, res) => {
 })
 
 app.get("/healthz", (req, res) => {
-    res.status(200).json({
-        success: true,
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = dbState === 1 ? "connected" : dbState === 2 ? "connecting" : "disconnected";
+    const healthy = dbStatus === "connected";
+
+    res.status(healthy ? 200 : 503).json({
+        success: healthy,
         service: "sangam-backend",
-        status: "healthy",
+        status: healthy ? "healthy" : "degraded",
+        database: dbStatus,
         uptime: process.uptime(),
         timestamp: new Date().toISOString()
     });
@@ -161,13 +184,15 @@ app.get("/api/health", (req, res) => {
     res.status(200).json({
         success: true,
         status: "ok",
-        environment: process.env.NODE_ENV || "development"
     });
 });
 
 // Apply rate limiters to auth routes
 app.use("/admin/register", loginLimiter);
 app.use("/admin/login", loginLimiter);
+app.use("/admin/google-login", loginLimiter);
+app.use("/admin/google-register", loginLimiter);
+app.use("/admin/refresh-token", refreshLimiter);
 
 // Apply stricter rate limiting to upload endpoints
 app.use("/api/uploadProjectReport", uploadLimiter);
@@ -190,31 +215,59 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3002;
 
+io.use(socketAuthMiddleware);
+
 io.on("connection", (socket) => {
-    logger.info(`Socket connected: ${socket.id}`);
+    const user = socket.data.user;
+    const displayName = getUserDisplayName(user);
+    logger.info(`Socket connected: ${socket.id} (${displayName})`);
 
     socket.on("chatMessage", async (payload) => {
         try {
-            const { sender, receiver, text } = payload || {};
-            if (!sender || !receiver || !text) return;
-            const saved = await Message.create({ sender, receiver, text });
-            io.emit("message", {
+            const { receiver, text } = payload || {};
+            if (!receiver || !text?.trim()) return;
+
+            const saved = await Message.create({
+                sender: displayName,
+                receiver,
+                text: text.trim(),
+            });
+
+            const messagePayload = {
                 sender: saved.sender,
                 receiver: saved.receiver,
                 text: saved.text,
                 createdAt: saved.createdAt,
-            });
+            };
+
+            io.to(`user:${receiver}`).to(`user:${displayName}`).emit("message", messagePayload);
         } catch (error) {
             logger.error("Socket chatMessage error", error);
         }
     });
 
     socket.on("typing", (payload) => {
-        io.emit("typing", payload);
+        const { receiver, typing } = payload || {};
+        if (!receiver) return;
+        io.to(`user:${receiver}`).emit("typing", {
+            sender: displayName,
+            receiver,
+            typing: Boolean(typing),
+        });
     });
 
     socket.on("joinDepartment", async (department) => {
         if (!department) return;
+
+        const canJoin =
+            ADMIN_ROLES.includes(user.role) ||
+            user.department === department;
+
+        if (!canJoin) {
+            socket.emit("error", { message: "Access denied for this department" });
+            return;
+        }
+
         socket.join(department);
         try {
             const history = await DiscussionMessage.find({ department })
@@ -236,12 +289,19 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", async (payload) => {
         try {
-            const { department, user, content, isFavorite } = payload || {};
-            if (!department || !user || !content) return;
+            const { department, content, isFavorite } = payload || {};
+            if (!department || !content?.trim()) return;
+
+            const canPost =
+                ADMIN_ROLES.includes(user.role) ||
+                user.department === department;
+
+            if (!canPost) return;
+
             const saved = await DiscussionMessage.create({
                 department,
-                user,
-                content,
+                user: displayName,
+                content: content.trim(),
                 isFavorite: Boolean(isFavorite),
             });
             io.to(department).emit("newMessage", {

@@ -1,16 +1,11 @@
 import { User } from '../models/user.model.js';
 import {Department} from '../models/department.model.js';
-import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-//import {Project} from "../models/project.model.js"
-import multer from "multer";
 import mongoose from 'mongoose';
-
-
-const upload = multer(); // Initialize multer
+import { ADMIN_ROLES, assertSelfRegistrationRole } from '../utils/roles.js';
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -28,14 +23,17 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 export const registerUser = asyncHandler(
     async (req, res) => {
-    const { fullName, email, username, password,department,role } = req.body
-    //console.log("email: ", email);
-    console.log("Request Body:",req.body);
+    const { fullName, email, username, password, department, role } = req.body
 
     if(
-        [fullName, email, username, password,role].some((field) => field?.trim() === "")
+        [fullName, email, username, password, role].some((field) => field?.trim() === "")
     ){
         throw new ApiError(400, "All fields are required")
+    }
+
+    const roleError = assertSelfRegistrationRole(role);
+    if (roleError) {
+        throw new ApiError(400, roleError);
     }
 
     const existedUser = await User.findOne({
@@ -86,6 +84,17 @@ export const getUserById = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User ID is required");
     }
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(400, "Invalid user ID format");
+    }
+
+    const isSelf = req.user._id.toString() === id;
+    const isAdmin = ADMIN_ROLES.includes(req.user.role);
+
+    if (!isSelf && !isAdmin) {
+        throw new ApiError(403, "Access denied");
+    }
+
     const user = await User.findById(id).populate('department').select("-password -refreshToken");
 
     if (!user) {
@@ -109,7 +118,6 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, username, password } = req.body;
-    console.log("request body:", req.body);
     if (!username && !email) {
         throw new ApiError(404, "username or email is required");
     }
@@ -139,10 +147,7 @@ export const loginUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                {
-                    user: loggedInUser, accessToken,
-                    refreshToken
-                },
+                { user: loggedInUser },
                 "User logged In successfully"
             )
         )
@@ -150,7 +155,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 
 export const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+    const incomingRefreshToken = req.cookies?.refreshToken;
     if (!incomingRefreshToken) {
         throw new ApiError(401, "Unauthorized request");
     }
@@ -181,7 +186,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
             .json(
                 new ApiResponse(
                     200,
-                    { accessToken, refreshToken: newRefreshToken },
+                    {},
                     "Access Token refreshed successfully"
                 )
             )
@@ -277,6 +282,14 @@ export const getAllUsersByDepartmentId = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid department ID format");
     }
 
+    if (!ADMIN_ROLES.includes(req.user.role)) {
+        throw new ApiError(403, "Access denied");
+    }
+
+    if (req.user.role === 'Department Admin' && req.user.department !== departmentId) {
+        throw new ApiError(403, "Access denied for this department");
+    }
+
     const users = await User.find({ department: departmentId })
         .select("-password -refreshToken")
         .populate('department');
@@ -293,7 +306,13 @@ export const getAllUsersByDepartmentId = asyncHandler(async (req, res) => {
 
 
 export const changeCurrentPassword= asyncHandler(async(req,res)=>{
-    const {oldPassword,newPassword}=req.body
+    const oldPassword = req.body.oldPassword || req.body.currentPassword;
+    const { newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+        throw new ApiError(400, "Current and new password are required");
+    }
+
     const user=await User.findById(req.user?._id)
     const isPasswordCorrect=await user.isPasswordCorrect(oldPassword)
     if(!isPasswordCorrect){

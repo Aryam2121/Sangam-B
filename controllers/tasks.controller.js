@@ -3,7 +3,12 @@ import { Task } from '../models/tasks.model.js';
 import { Project } from '../models/project.model.js';
 import {User} from '../models/user.model.js';
 import { ApiError } from '../utils/ApiError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ADMIN_ROLES } from '../utils/roles.js';
 import { logActivity } from "../utils/activityLogger.js";
+import { pickFields } from "../utils/pickFields.js";
+
+const TASK_UPDATE_FIELDS = ['title', 'taskId', 'description', 'assignedTo', 'project', 'status', 'dueDate'];
 
 
 export const createTask = async (req, res) => {
@@ -36,7 +41,7 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req, res)=>{
     try {
         const { taskId } = req.params;
-        const updates = req.body;
+        const updates = pickFields(req.body, TASK_UPDATE_FIELDS);
         const updatedTask = await Task.findByIdAndUpdate(taskId, updates, { new: true });
         if (!updatedTask) {
             return res.status(404).json({ message: "Task not found" });
@@ -106,22 +111,26 @@ export const getTaskById = async (req, res) => {
 };
 
 
-export const getAllTasksByUserId = async (req, res) => {
-    try {
-        const { userId } = req.params;
+export const getAllTasksByUserId = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
 
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ error: 'Invalid user ID' });
-        }
-
-        const tasks = await Task.find({ assignedTo: userId }).populate('assignedTo').populate('project');
-
-        res.status(200).json({ tasks: tasks || [] });
-    } catch (error) {
-        console.error('Error fetching tasks:', error);
-        res.status(500).json({ error: 'Server error' });
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        throw new ApiError(400, 'Invalid user ID');
     }
-};
+
+    const isSelf = req.user._id.toString() === userId;
+    const isAdmin = ADMIN_ROLES.includes(req.user.role);
+
+    if (!isSelf && !isAdmin) {
+        throw new ApiError(403, 'Access denied');
+    }
+
+    const tasks = await Task.find({ assignedTo: userId })
+        .populate('assignedTo')
+        .populate('project');
+
+    res.status(200).json({ tasks: tasks || [] });
+});
 
 
 export const getAllTasks = async (req, res) => {

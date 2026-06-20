@@ -6,6 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { verifyFirebaseIdToken } from "../utils/firebaseAdmin.js";
+import { assertSelfRegistrationRole } from "../utils/roles.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -31,7 +32,7 @@ const issueLoginResponse = async (user, res, message) => {
     .cookie("accessToken", accessToken, cookieOptions)
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
-      new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, message)
+      new ApiResponse(200, { user: loggedInUser }, message)
     );
 };
 
@@ -117,6 +118,11 @@ export const completeGoogleRegistration = asyncHandler(async (req, res) => {
 
   if (!idToken || !role) {
     throw new ApiError(400, "idToken and role are required");
+  }
+
+  const roleError = assertSelfRegistrationRole(role);
+  if (roleError) {
+    throw new ApiError(400, roleError);
   }
 
   let decoded;

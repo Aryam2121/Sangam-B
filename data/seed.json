@@ -11,14 +11,12 @@
       "username": "mainadmin",
       "email": "mainadmin@sangam.local",
       "fullName": "Main Admin",
-      "password": "Sangam123",
       "role": "Main Admin"
     },
     {
       "username": "deptadmin",
       "email": "deptadmin@sangam.local",
       "fullName": "Department Admin",
-      "password": "Sangam123",
       "role": "Department Admin",
       "department": "Water"
     },
@@ -26,7 +24,6 @@
       "username": "officer",
       "email": "officer@sangam.local",
       "fullName": "Field Officer",
-      "password": "Sangam123",
       "role": "Officer",
       "department": "Water"
     },
@@ -34,7 +31,6 @@
       "username": "worker1",
       "email": "worker1@sangam.local",
       "fullName": "Site Worker One",
-      "password": "Sangam123",
       "role": "Worker",
       "department": "Water"
     },
@@ -42,7 +38,6 @@
       "username": "worker2",
       "email": "worker2@sangam.local",
       "fullName": "Site Worker Two",
-      "password": "Sangam123",
       "role": "Worker",
       "department": "Roads"
     }

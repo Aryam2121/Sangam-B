@@ -1,14 +1,14 @@
 // completedPath.controller.js
-import express from 'express';
 import { CompletedPath } from '../models/completePath.models.js';
 import { v4 as uuidv4 } from 'uuid';
+import { pickFields } from '../utils/pickFields.js';
 
-
-
+const COMPLETED_PATH_CREATE_FIELDS = ['projectId', 'completedPath', 'timestamp', 'distance'];
+const COMPLETED_PATH_UPDATE_FIELDS = ['completedPath'];
 // Controller function to create a new completed path
 export const createCompletedPath = async (req, res) => {
     try {
-        const { projectId, completedPath, timestamp, distance } = req.body;
+        const { projectId, completedPath, timestamp, distance } = pickFields(req.body, COMPLETED_PATH_CREATE_FIELDS);
         if (!projectId || !completedPath || !timestamp) {
             return res.status(400).json({ error: 'All required fields must be provided' });
         }
@@ -66,7 +66,7 @@ export const getCompletedPathById = async (req, res) => {
 export const updateCompletedPath = async (req, res) => {
     try {
         const { id } = req.params;
-        const { completedPath } = req.body;
+        const { completedPath } = pickFields(req.body, COMPLETED_PATH_UPDATE_FIELDS);
 
         if (!id) {
             return res.status(400).json({ error: 'Path ID is required' });

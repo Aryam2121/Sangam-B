@@ -1,14 +1,13 @@
 // newPath.controller.js
-import express from 'express';
 import { NewPath } from '../models/newpath.model.js';
-import { v4 as uuidv4 } from 'uuid';
+import { pickFields } from '../utils/pickFields.js';
 
-const router = express.Router();
+const NEW_PATH_FIELDS = ['projectId1', 'projectId2', 'location1', 'location2', 'timestamp', 'distance'];
 
 // Controller function to create a new path
 export const createNewPath = async (req, res) => {
     try {
-        const { projectId1, projectId2, location1, location2, timestamp, distance } = req.body;
+        const { projectId1, projectId2, location1, location2, timestamp, distance } = pickFields(req.body, NEW_PATH_FIELDS);
 
         if (!projectId1 || !projectId2 || !location1 || !location2 || !timestamp || !distance) {
             return res.status(400).json({ error: 'All fields are required' });

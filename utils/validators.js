@@ -41,9 +41,15 @@ export const userValidators = {
 
   validateRegistration: (data) => {
     const errors = [];
+    const allowedRoles = ['Worker', 'Officer', 'Department Admin'];
 
     if (!data.email) errors.push('Email is required');
     else if (!userValidators.validateEmail(data.email)) errors.push('Invalid email format');
+
+    if (!data.username) errors.push('Username is required');
+    else if (!userValidators.validateUsername(data.username)) {
+      errors.push('Username must be 3-20 characters (letters, numbers, underscore only)');
+    }
 
     if (!data.password) errors.push('Password is required');
     else if (!userValidators.validatePassword(data.password)) {
@@ -52,6 +58,15 @@ export const userValidators = {
 
     if (!data.fullName || typeof data.fullName !== 'string' || data.fullName.trim().length < 2) {
       errors.push('Full name must be at least 2 characters');
+    }
+
+    if (!data.role) errors.push('Role is required');
+    else if (!allowedRoles.includes(data.role)) {
+      errors.push(`Role must be one of: ${allowedRoles.join(', ')}`);
+    }
+
+    if (data.role && data.role !== 'Main Admin' && !data.department?.trim()) {
+      errors.push('Department is required for this role');
     }
 
     if (data.phone && !userValidators.validatePhone(data.phone)) {
@@ -64,8 +79,11 @@ export const userValidators = {
   validateLogin: (data) => {
     const errors = [];
 
-    if (!data.email) errors.push('Email is required');
-    else if (!userValidators.validateEmail(data.email)) errors.push('Invalid email format');
+    if (!data.email && !data.username) {
+      errors.push('Email or username is required');
+    } else if (data.email && !userValidators.validateEmail(data.email)) {
+      errors.push('Invalid email format');
+    }
 
     if (!data.password) errors.push('Password is required');
 
@@ -74,14 +92,13 @@ export const userValidators = {
 
   validatePasswordChange: (data) => {
     const errors = [];
+    const oldPassword = data.oldPassword || data.currentPassword;
 
-    if (!data.currentPassword) errors.push('Current password is required');
+    if (!oldPassword) errors.push('Current password is required');
     if (!data.newPassword) errors.push('New password is required');
     else if (!userValidators.validatePassword(data.newPassword)) {
       errors.push('New password must contain at least 8 characters, 1 uppercase letter, 1 lowercase letter, and 1 number');
     }
-    if (!data.confirmPassword) errors.push('Password confirmation is required');
-    else if (data.newPassword !== data.confirmPassword) errors.push('Passwords do not match');
 
     return { isValid: errors.length === 0, errors };
   }
@@ -258,16 +275,8 @@ export const resourceValidators = {
       errors.push('Resource name must be at least 2 characters');
     }
 
-    if (!data.type || typeof data.type !== 'string') {
-      errors.push('Resource type is required');
-    }
-
-    if (!data.quantity || typeof data.quantity !== 'number' || data.quantity <= 0) {
-      errors.push('Quantity must be a positive number');
-    }
-
-    if (!data.department) {
-      errors.push('Department is required');
+    if (!data.unit || typeof data.unit !== 'string' || !data.unit.trim()) {
+      errors.push('Resource unit is required');
     }
 
     return { isValid: errors.length === 0, errors };
@@ -355,6 +364,135 @@ export const fileValidators = {
   }
 };
 
+export const apiValidators = {
+  validateProjectCreate: (data) => {
+    const errors = [];
+    if (!data?.name?.trim()) errors.push('name is required');
+    if (!data?.description?.trim()) errors.push('description is required');
+    if (!Array.isArray(data?.departments) || !data.departments.length) errors.push('departments is required');
+    if (!data?.projectAdmin?.trim()) errors.push('projectAdmin is required');
+    if (!Array.isArray(data?.workerIds)) errors.push('workerIds is required');
+    if (!Array.isArray(data?.taskIds) || !data.taskIds.length) errors.push('taskIds is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateTaskCreate: (data) => {
+    const errors = [];
+    if (!data?.title?.trim()) errors.push('title is required');
+    if (!data?.project) errors.push('project is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateBidCreate: (data) => {
+    const errors = [];
+    if (!data?.contractor?.trim()) errors.push('contractor is required');
+    if (!data?.resource?.trim()) errors.push('resource is required');
+    if (data?.price === undefined || data?.price === null || Number.isNaN(Number(data.price))) {
+      errors.push('price is required');
+    }
+    if (!data?.expiresAt) errors.push('expiresAt is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateChatMessage: (data) => {
+    const errors = [];
+    if (!data?.receiver?.trim()) errors.push('receiver is required');
+    if (!data?.text?.trim()) errors.push('text is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateDiscussionMessage: (data) => {
+    const errors = [];
+    if (!data?.department?.trim()) errors.push('department is required');
+    if (!data?.content?.trim()) errors.push('content is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateAssistantChat: (data) => {
+    const errors = [];
+    if (!data?.message?.trim() && !data?.query?.trim()) {
+      errors.push('message is required');
+    }
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateResourceAssign: (data) => {
+    const errors = [];
+    if (!data?.resourceId?.trim()) errors.push('resourceId is required');
+    if (!data?.projectId?.trim()) errors.push('projectId is required');
+    if (data?.quantity === undefined || data?.quantity === null || Number.isNaN(Number(data.quantity))) {
+      errors.push('quantity is required');
+    }
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateResourceUpdate: (data) => {
+    const errors = [];
+    if (data.name !== undefined && !String(data.name).trim()) errors.push('name cannot be empty');
+    if (data.unit !== undefined && !String(data.unit).trim()) errors.push('unit cannot be empty');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validatePathCreate: (data) => {
+    const errors = [];
+    if (!data?._id?.trim()) errors.push('_id is required');
+    if (!Array.isArray(data?.totalpath) || !data.totalpath.length) errors.push('totalpath is required');
+    if (!data?.timestamp) errors.push('timestamp is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validatePathUpdate: (data) => {
+    const errors = [];
+    if (!Array.isArray(data?.totalpath) || !data.totalpath.length) errors.push('totalpath is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateNewPathCreate: (data) => {
+    const errors = [];
+    if (!data?.projectId1?.trim()) errors.push('projectId1 is required');
+    if (!data?.projectId2?.trim()) errors.push('projectId2 is required');
+    if (!data?.location1) errors.push('location1 is required');
+    if (!data?.location2) errors.push('location2 is required');
+    if (!data?.timestamp) errors.push('timestamp is required');
+    if (data?.distance === undefined || data?.distance === null) errors.push('distance is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateCompletedPathCreate: (data) => {
+    const errors = [];
+    if (!data?.projectId?.trim()) errors.push('projectId is required');
+    if (!Array.isArray(data?.completedPath) || !data.completedPath.length) errors.push('completedPath is required');
+    if (!data?.timestamp) errors.push('timestamp is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateCompletedPathUpdate: (data) => {
+    const errors = [];
+    if (!Array.isArray(data?.completedPath) || !data.completedPath.length) errors.push('completedPath is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateSeminarCreate: (data) => {
+    const errors = [];
+    if (!data?.publisherName?.trim()) errors.push('publisherName is required');
+    if (!data?.seminarLink?.trim()) errors.push('seminarLink is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateProjectMLCreate: (data) => {
+    const errors = [];
+    const projectId = data?.project_id || data?.projectId;
+    if (!projectId?.trim()) errors.push('project_id is required');
+    return { isValid: errors.length === 0, errors };
+  },
+
+  validateProjectMLUpdate: (data) => {
+    const errors = [];
+    if (!data || !Object.keys(data).length) errors.push('At least one field is required');
+    return { isValid: errors.length === 0, errors };
+  },
+};
+
 export default {
   userValidators,
   projectValidators,
@@ -363,5 +501,6 @@ export default {
   resourceValidators,
   pathValidators,
   idValidators,
-  fileValidators
+  fileValidators,
+  apiValidators,
 };
