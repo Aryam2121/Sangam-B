@@ -105,12 +105,25 @@ const seed = async () => {
   const taskDocs = [];
   let taskCounter = 1;
 
-  for (const project of payload.projects || []) {
+  const projectMeta = (index = 0) => ({
+    zone: ["Central", "North", "South", "East"][index % 4],
+    ward: `Ward ${(index % 12) + 1}`,
+    district: "New Delhi",
+    location: {
+      lat: 28.61 + (index % 8) * 0.012,
+      lng: 77.2 + (index % 6) * 0.015,
+    },
+    budgetAllocated: 250000 + index * 50000,
+    budgetSpent: 0,
+  });
+
+  for (const [idx, project] of (payload.projects || []).entries()) {
     const departmentIds = (project.departments || [])
       .map((deptName) => departmentsByName[deptName]?._id)
       .filter(Boolean);
 
     const workerUsernames = project.workerIds || [];
+    const meta = projectMeta(idx);
     const projectDoc = await Project.create({
       name: project.name,
       description: project.description,
@@ -122,6 +135,7 @@ const seed = async () => {
       status: "active",
       startDate: new Date(),
       endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90),
+      ...meta,
     });
 
     const tasksForProject = [];
@@ -138,6 +152,10 @@ const seed = async () => {
         project: projectDoc._id,
         status: "Pending",
         dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+        department: assignedUser.department,
+        zone: meta.zone,
+        ward: meta.ward,
+        district: meta.district,
       });
       tasksForProject.push(task._id);
       taskDocs.push(task);
@@ -159,6 +177,7 @@ const seed = async () => {
       .map((user) => user.username);
     const admin = userDocs.find((user) => user.role === "Department Admin") || userDocs[0];
 
+    const meta = projectMeta(i);
     const projectDoc = await Project.create({
       name: `Project ${i + 1}`,
       description: `Auto-generated project ${i + 1} for functional testing.`,
@@ -170,6 +189,7 @@ const seed = async () => {
       status: i % 3 === 0 ? "completed" : i % 2 === 0 ? "pending" : "active",
       startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * (i + 2)),
       endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * (i + 14)),
+      ...meta,
     });
 
     projectDocs.push(projectDoc);
@@ -187,6 +207,10 @@ const seed = async () => {
       project: project._id,
       status: i % 4 === 0 ? "Completed" : i % 3 === 0 ? "In Progress" : "Pending",
       dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * (i + 2)),
+      department: assignedUser.department,
+      zone: project.zone,
+      ward: project.ward,
+      district: project.district,
     });
     taskDocs.push(task);
     project.taskIds.push(task._id);

@@ -41,6 +41,15 @@ const projectSchema = new Schema({
     endDate: {
         type: Date,
     },
+    zone: { type: String, index: true },
+    ward: { type: String, index: true },
+    district: { type: String, index: true },
+    budgetAllocated: { type: Number, default: 0 },
+    budgetSpent: { type: Number, default: 0 },
+    location: {
+        lat: { type: Number },
+        lng: { type: Number },
+    },
 },
 {
     timestamps: true, // Adds createdAt and updatedAt fields

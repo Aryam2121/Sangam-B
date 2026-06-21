@@ -4,13 +4,13 @@ const activityLogSchema = new Schema(
   {
     entityType: {
       type: String,
-      enum: ["task", "project", "resource", "bid"],
+      enum: ["task", "project", "resource", "bid", "workflow", "budget", "announcement", "report"],
       required: true,
       index: true,
     },
     action: {
       type: String,
-      enum: ["created", "updated", "deleted", "assigned", "status_changed"],
+      enum: ["created", "updated", "deleted", "assigned", "status_changed", "approved", "rejected", "escalated", "budget_updated"],
       required: true,
       index: true,
     },
