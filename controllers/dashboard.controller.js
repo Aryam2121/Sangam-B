@@ -2,6 +2,8 @@ import { Project } from "../models/project.model.js";
 import { Task } from "../models/tasks.model.js";
 import { Resource } from "../models/resources.model.js";
 import { User } from "../models/user.model.js";
+import { InterDeptRequest } from "../models/interDeptRequest.model.js";
+import { Announcement } from "../models/announcement.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ADMIN_ROLES } from "../utils/roles.js";
 import { Department } from "../models/department.model.js";
@@ -118,6 +120,34 @@ export const getDashboardSummary = asyncHandler(async (req, res) => {
     .limit(5)
     .select("title dueDate status department");
 
+  const overdueTasks = await Task.countDocuments({
+    ...taskFilter,
+    status: { $ne: "Completed" },
+    dueDate: { $lt: new Date() },
+  });
+
+  const pendingApprovals = await InterDeptRequest.countDocuments({
+    status: { $in: ["pending", "in_review"] },
+  });
+
+  const budgetAgg = await Project.aggregate([
+    { $match: projectFilter },
+    {
+      $group: {
+        _id: null,
+        allocated: { $sum: { $ifNull: ["$budgetAllocated", 0] } },
+        spent: { $sum: { $ifNull: ["$budgetSpent", 0] } },
+      },
+    },
+  ]);
+  const budget = budgetAgg[0] || { allocated: 0, spent: 0 };
+
+  const recentAnnouncements = await Announcement.find()
+    .sort({ createdAt: -1 })
+    .limit(4)
+    .select("title priority createdAt")
+    .lean();
+
   const projectStatusMap = normalizeCounts(projectStatus);
   const taskStatusMap = normalizeCounts(taskStatus);
 
@@ -135,13 +165,26 @@ export const getDashboardSummary = asyncHandler(async (req, res) => {
       role: req.user.role,
     },
     counts,
+    metrics: {
+      overdueTasks,
+      pendingApprovals,
+      completedTasks: taskStatusMap.Completed || 0,
+      budgetUtilization:
+        budget.allocated > 0 ? Math.round((budget.spent / budget.allocated) * 100) : 0,
+    },
+    budget: {
+      allocated: budget.allocated,
+      spent: budget.spent,
+    },
     status: {
       projects: projectStatusMap,
       tasks: taskStatusMap,
     },
     chartData: formatChartData(projectStatusMap),
+    taskChartData: formatChartData(taskStatusMap),
     recentProjects: await shapeRecentProjects(recentProjects),
     recentTasks,
     alerts: alertTasks,
+    announcements: recentAnnouncements,
   });
 });

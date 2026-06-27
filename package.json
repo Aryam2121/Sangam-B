@@ -9,7 +9,11 @@
     "start": "node index.js",
     "build": "npm install",
     "dev": "nodemon -r dotenv/config --experimental-json-modules index.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "seed:demo": "node scripts/seed-demo-data.mjs",
+    "verify": "node scripts/e2e-verify.mjs",
+    "verify:roles": "node scripts/role-data-audit.mjs",
+    "verify:actions": "node scripts/full-actions-verify.mjs"
   },
   "keywords": [
     "node"

@@ -11,6 +11,13 @@ import { Message } from "../models/message.model.js";
 import { DiscussionMessage } from "../models/discussionForum.model.js";
 import { Path } from "../models/totalpath.model.js";
 import { CompletedPath } from "../models/completePath.models.js";
+import { Announcement } from "../models/announcement.model.js";
+import { InterDeptRequest } from "../models/interDeptRequest.model.js";
+import { BudgetEntry } from "../models/budgetEntry.model.js";
+import { Bid } from "../models/bid.model.js";
+import { WebhookConfig } from "../models/webhookConfig.model.js";
+import Seminar from "../models/training.model.js";
+import { logActivity } from "../utils/activityLogger.js";
 
 dotenv.config();
 
@@ -282,6 +289,83 @@ const seed = async () => {
       distance: 1.5,
     });
   }
+
+  const mainAdmin = usersByUsername.mainadmin || userDocs.find((u) => u.role === "Main Admin");
+  const deptAdmin = usersByUsername.deptadmin || userDocs.find((u) => u.role === "Department Admin");
+
+  for (const item of payload.announcements || []) {
+    await Announcement.create({
+      title: item.title,
+      body: item.body,
+      department: item.department || null,
+      authorName: mainAdmin?.fullName || "Main Admin",
+      authorId: mainAdmin?._id,
+      pinned: Boolean(item.pinned),
+    });
+  }
+
+  for (const item of payload.workflow || []) {
+    const requester = usersByUsername[item.requestedBy] || mainAdmin;
+    await InterDeptRequest.create({
+      title: item.title,
+      description: item.description || "",
+      fromDepartment: item.fromDepartment,
+      toDepartment: item.toDepartment,
+      requestedBy: requester?._id,
+      requestedByName: requester?.fullName || requester?.username || "Admin",
+      status: item.status || "pending",
+      priority: item.priority || "medium",
+      project: projectDocs[0]?._id,
+      slaDeadline: new Date(Date.now() + 72 * 60 * 60 * 1000),
+    });
+  }
+
+  for (const item of payload.budget || []) {
+    const project = projectDocs.find((p) => p.name === item.projectName) || projectDocs[0];
+    if (!project) continue;
+    await BudgetEntry.create({
+      project: project._id,
+      amount: item.amount,
+      type: item.type || "expense",
+      category: item.category || "general",
+      description: item.description || "",
+      department: item.department,
+      recordedBy: deptAdmin?._id,
+      recordedByName: deptAdmin?.fullName || "Department Admin",
+    });
+  }
+
+  for (const item of payload.bids || []) {
+    await Bid.create({
+      contractor: item.contractor,
+      resource: item.resource,
+      price: item.price,
+      expiresAt: new Date(Date.now() + (item.expiresInDays || 30) * 24 * 60 * 60 * 1000),
+    });
+  }
+
+  for (const item of payload.webhooks || []) {
+    await WebhookConfig.create({
+      name: item.name,
+      url: item.url,
+      events: item.events || [],
+      active: true,
+    });
+  }
+
+  for (const item of payload.seminars || []) {
+    await Seminar.create(item);
+  }
+
+  await logActivity({
+    entityType: "project",
+    action: "created",
+    entityId: projectDocs[0]?._id?.toString() || "seed",
+    title: "Seed data loaded",
+    description: "Demo projects and tasks initialized",
+    actorName: mainAdmin?.fullName || "System",
+    actorId: mainAdmin?._id,
+  });
 
   return {
     departments: departmentDocs.length,
