@@ -26,6 +26,11 @@ const taskSchema = new Schema({
         default: 'Pending',
     },
     dueDate: Date,
+    zone: { type: String, index: true },
+    ward: { type: String, index: true },
+    district: { type: String, index: true },
+    department: { type: String, index: true },
+    sitePhotoUrl: { type: String },
 });
 
 export const Task = mongoose.model('Task', taskSchema);

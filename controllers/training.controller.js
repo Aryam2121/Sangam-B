@@ -1,42 +1,51 @@
-import mongoose from "mongoose";
-import {User} from '../models/user.model.js';
-
 import Seminar from "../models/training.model.js";
+import { SeminarAttendance } from "../models/seminarAttendance.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
+export const createSeminar = asyncHandler(async (req, res) => {
+  const { publisherName, seminarLink, description } = req.body;
 
-export const createSeminar = async (req, res) => {
-    const { publisherName, seminarLink, description } = req.body;
+  if (!publisherName || !seminarLink) {
+    return res.status(400).json({ message: "Author name and seminar link are required." });
+  }
 
-    if (!publisherName || !seminarLink) {
-        return res.status(400).json({ message: "Author name and seminar link are required." });
-    }
+  const newSeminar = await Seminar.create({ publisherName, seminarLink, description });
+  res.status(201).json(newSeminar);
+});
 
-    try {
-        const newSeminar = new Seminar({
-            publisherName,
-            seminarLink,
-            description
-        });
+export const getAllSeminars = asyncHandler(async (req, res) => {
+  const seminars = await Seminar.find().sort({ createdAt: -1 });
+  res.status(200).json(seminars);
+});
 
-        await newSeminar.save();
-        res.status(201).json(newSeminar);
-    } catch (error) {
-        console.error('Error creating seminar:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+export const markSeminarAttendance = asyncHandler(async (req, res) => {
+  const { seminarId } = req.params;
+  const { certificateIssued } = req.body;
 
+  const record = await SeminarAttendance.findOneAndUpdate(
+    { seminarId, userId: req.user._id },
+    {
+      userName: req.user.fullName || req.user.username,
+      certificateIssued: Boolean(certificateIssued),
+    },
+    { upsert: true, new: true }
+  );
 
-export const getAllSeminars = async (req, res) => {
-    try {
-        const seminars = await Seminar.find();
-        res.status(200).json(seminars);
-    } catch (error) {
-        console.error('Error getting seminars:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-}
+  res.status(200).json({ success: true, attendance: record });
+});
 
+export const getSeminarAttendance = asyncHandler(async (req, res) => {
+  const { seminarId } = req.params;
+  const records = await SeminarAttendance.find({ seminarId }).sort({ createdAt: -1 });
+  const mine = await SeminarAttendance.findOne({ seminarId, userId: req.user._id });
+  res.status(200).json({ success: true, records, attended: Boolean(mine) });
+});
 
+export const getMySeminarCertificates = asyncHandler(async (req, res) => {
+  const records = await SeminarAttendance.find({
+    userId: req.user._id,
+    certificateIssued: true,
+  }).populate("seminarId");
 
-
+  res.status(200).json({ success: true, certificates: records });
+});

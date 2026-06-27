@@ -11,6 +11,13 @@ import { Message } from "../models/message.model.js";
 import { DiscussionMessage } from "../models/discussionForum.model.js";
 import { Path } from "../models/totalpath.model.js";
 import { CompletedPath } from "../models/completePath.models.js";
+import { Announcement } from "../models/announcement.model.js";
+import { InterDeptRequest } from "../models/interDeptRequest.model.js";
+import { BudgetEntry } from "../models/budgetEntry.model.js";
+import { Bid } from "../models/bid.model.js";
+import { WebhookConfig } from "../models/webhookConfig.model.js";
+import Seminar from "../models/training.model.js";
+import { logActivity } from "../utils/activityLogger.js";
 
 dotenv.config();
 
@@ -105,12 +112,25 @@ const seed = async () => {
   const taskDocs = [];
   let taskCounter = 1;
 
-  for (const project of payload.projects || []) {
+  const projectMeta = (index = 0) => ({
+    zone: ["Central", "North", "South", "East"][index % 4],
+    ward: `Ward ${(index % 12) + 1}`,
+    district: "New Delhi",
+    location: {
+      lat: 28.61 + (index % 8) * 0.012,
+      lng: 77.2 + (index % 6) * 0.015,
+    },
+    budgetAllocated: 250000 + index * 50000,
+    budgetSpent: 0,
+  });
+
+  for (const [idx, project] of (payload.projects || []).entries()) {
     const departmentIds = (project.departments || [])
       .map((deptName) => departmentsByName[deptName]?._id)
       .filter(Boolean);
 
     const workerUsernames = project.workerIds || [];
+    const meta = projectMeta(idx);
     const projectDoc = await Project.create({
       name: project.name,
       description: project.description,
@@ -122,6 +142,7 @@ const seed = async () => {
       status: "active",
       startDate: new Date(),
       endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 90),
+      ...meta,
     });
 
     const tasksForProject = [];
@@ -138,6 +159,10 @@ const seed = async () => {
         project: projectDoc._id,
         status: "Pending",
         dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+        department: assignedUser.department,
+        zone: meta.zone,
+        ward: meta.ward,
+        district: meta.district,
       });
       tasksForProject.push(task._id);
       taskDocs.push(task);
@@ -159,6 +184,7 @@ const seed = async () => {
       .map((user) => user.username);
     const admin = userDocs.find((user) => user.role === "Department Admin") || userDocs[0];
 
+    const meta = projectMeta(i);
     const projectDoc = await Project.create({
       name: `Project ${i + 1}`,
       description: `Auto-generated project ${i + 1} for functional testing.`,
@@ -170,6 +196,7 @@ const seed = async () => {
       status: i % 3 === 0 ? "completed" : i % 2 === 0 ? "pending" : "active",
       startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * (i + 2)),
       endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * (i + 14)),
+      ...meta,
     });
 
     projectDocs.push(projectDoc);
@@ -187,6 +214,10 @@ const seed = async () => {
       project: project._id,
       status: i % 4 === 0 ? "Completed" : i % 3 === 0 ? "In Progress" : "Pending",
       dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * (i + 2)),
+      department: assignedUser.department,
+      zone: project.zone,
+      ward: project.ward,
+      district: project.district,
     });
     taskDocs.push(task);
     project.taskIds.push(task._id);
@@ -258,6 +289,83 @@ const seed = async () => {
       distance: 1.5,
     });
   }
+
+  const mainAdmin = usersByUsername.mainadmin || userDocs.find((u) => u.role === "Main Admin");
+  const deptAdmin = usersByUsername.deptadmin || userDocs.find((u) => u.role === "Department Admin");
+
+  for (const item of payload.announcements || []) {
+    await Announcement.create({
+      title: item.title,
+      body: item.body,
+      department: item.department || null,
+      authorName: mainAdmin?.fullName || "Main Admin",
+      authorId: mainAdmin?._id,
+      pinned: Boolean(item.pinned),
+    });
+  }
+
+  for (const item of payload.workflow || []) {
+    const requester = usersByUsername[item.requestedBy] || mainAdmin;
+    await InterDeptRequest.create({
+      title: item.title,
+      description: item.description || "",
+      fromDepartment: item.fromDepartment,
+      toDepartment: item.toDepartment,
+      requestedBy: requester?._id,
+      requestedByName: requester?.fullName || requester?.username || "Admin",
+      status: item.status || "pending",
+      priority: item.priority || "medium",
+      project: projectDocs[0]?._id,
+      slaDeadline: new Date(Date.now() + 72 * 60 * 60 * 1000),
+    });
+  }
+
+  for (const item of payload.budget || []) {
+    const project = projectDocs.find((p) => p.name === item.projectName) || projectDocs[0];
+    if (!project) continue;
+    await BudgetEntry.create({
+      project: project._id,
+      amount: item.amount,
+      type: item.type || "expense",
+      category: item.category || "general",
+      description: item.description || "",
+      department: item.department,
+      recordedBy: deptAdmin?._id,
+      recordedByName: deptAdmin?.fullName || "Department Admin",
+    });
+  }
+
+  for (const item of payload.bids || []) {
+    await Bid.create({
+      contractor: item.contractor,
+      resource: item.resource,
+      price: item.price,
+      expiresAt: new Date(Date.now() + (item.expiresInDays || 30) * 24 * 60 * 60 * 1000),
+    });
+  }
+
+  for (const item of payload.webhooks || []) {
+    await WebhookConfig.create({
+      name: item.name,
+      url: item.url,
+      events: item.events || [],
+      active: true,
+    });
+  }
+
+  for (const item of payload.seminars || []) {
+    await Seminar.create(item);
+  }
+
+  await logActivity({
+    entityType: "project",
+    action: "created",
+    entityId: projectDocs[0]?._id?.toString() || "seed",
+    title: "Seed data loaded",
+    description: "Demo projects and tasks initialized",
+    actorName: mainAdmin?.fullName || "System",
+    actorId: mainAdmin?._id,
+  });
 
   return {
     departments: departmentDocs.length,

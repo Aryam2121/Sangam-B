@@ -16,6 +16,7 @@ import { DiscussionMessage } from "./models/discussionForum.model.js";
 import { initFirebaseAdmin } from "./utils/firebaseAdmin.js";
 import { socketAuthMiddleware, getUserDisplayName } from "./middlewares/socketAuth.middleware.js";
 import { ADMIN_ROLES } from "./utils/roles.js";
+import { setAppIo } from "./utils/socketEmitter.js";
 
 import mongoose from "mongoose";
 import { validateEnv } from "./utils/validateEnv.js";
@@ -70,6 +71,7 @@ const io = new SocketServer(server, {
         credentials: true
     }
 });
+setAppIo(io);
 
 // CORS configuration - use a strict origin checker and enable preflight
 app.use(cors(corsOptions));
@@ -93,6 +95,10 @@ app.use(express.urlencoded({extended: false, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+const shouldSkipRateLimit = () =>
+  process.env.DISABLE_RATE_LIMIT === "true" ||
+  (process.env.NODE_ENV || "development") !== "production";
+
 // Rate limiting middleware
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -103,7 +109,7 @@ const loginLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === 'development', // Skip in development
+    skip: () => shouldSkipRateLimit(),
     handler: (req, res) => {
         logger.warn(`Rate limit exceeded for ${req.ip} on ${req.path}`);
         res.status(429).json({
@@ -122,7 +128,7 @@ const apiLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === 'development',
+    skip: () => shouldSkipRateLimit(),
     handler: (req, res) => {
         logger.warn(`Rate limit exceeded for ${req.ip} on ${req.path}`);
         res.status(429).json({
@@ -141,7 +147,7 @@ const uploadLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === 'development'
+    skip: () => shouldSkipRateLimit()
 });
 
 const refreshLimiter = rateLimit({
@@ -153,7 +159,7 @@ const refreshLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => process.env.NODE_ENV === 'development',
+    skip: () => shouldSkipRateLimit(),
 });
 
 // Health check route
@@ -221,6 +227,37 @@ io.on("connection", (socket) => {
     const user = socket.data.user;
     const displayName = getUserDisplayName(user);
     logger.info(`Socket connected: ${socket.id} (${displayName})`);
+
+    if (user?._id) {
+        socket.join(`user:${user._id}`);
+    }
+    if (user?.department) {
+        socket.join(user.department);
+    }
+
+    socket.on("joinProject", (projectId) => {
+        if (!projectId) return;
+        socket.join(`project:${projectId}`);
+        socket.to(`project:${projectId}`).emit("presence", {
+            user: displayName,
+            projectId,
+            online: true,
+        });
+    });
+
+    socket.on("leaveProject", (projectId) => {
+        if (!projectId) return;
+        socket.leave(`project:${projectId}`);
+        socket.to(`project:${projectId}`).emit("presence", {
+            user: displayName,
+            projectId,
+            online: false,
+        });
+    });
+
+    socket.on("markNotificationsRead", (payload) => {
+        socket.emit("notifications:read", payload);
+    });
 
     socket.on("chatMessage", async (payload) => {
         try {

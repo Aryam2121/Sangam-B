@@ -13,14 +13,17 @@ export const getWorkerDashboard = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  const [myTasks, projectsCount, resourcesCount, allProjects] = await Promise.all([
+  const [myTasks, projectsCount, resourcesCount, workerProjects] = await Promise.all([
     Task.find({ assignedTo: userId })
       .populate("project", "name status")
       .sort({ dueDate: 1 })
       .limit(20),
-    Project.countDocuments(),
+    Project.countDocuments({ workerIds: user.username }),
     Resource.countDocuments(),
-    Project.find().sort({ updatedAt: -1 }).limit(5).select("name status startDate projectAdmin"),
+    Project.find({ workerIds: user.username })
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .select("name status startDate projectAdmin"),
   ]);
 
   const statusBreakdown = myTasks.reduce((acc, task) => {
@@ -30,6 +33,10 @@ export const getWorkerDashboard = asyncHandler(async (req, res) => {
   }, {});
 
   const chartData = Object.entries(statusBreakdown).map(([name, count]) => ({ name, count }));
+
+  const overdue = myTasks.filter(
+    (t) => t.status !== "Completed" && t.dueDate && new Date(t.dueDate) < new Date()
+  ).length;
 
   const alerts = myTasks
     .filter((t) => t.status !== "Completed" && t.dueDate && new Date(t.dueDate) < new Date(Date.now() + 86400000 * 3))
@@ -56,6 +63,10 @@ export const getWorkerDashboard = asyncHandler(async (req, res) => {
       pending: statusBreakdown.Pending || 0,
       inProgress: statusBreakdown["In Progress"] || 0,
       completed: statusBreakdown.Completed || 0,
+      overdue,
+      completionRate: myTasks.length
+        ? Math.round(((statusBreakdown.Completed || 0) / myTasks.length) * 100)
+        : 0,
     },
     chartData,
     myTasks: myTasks.map((t) => ({
@@ -66,7 +77,7 @@ export const getWorkerDashboard = asyncHandler(async (req, res) => {
       description: t.description,
       projectName: t.project?.name || "—",
     })),
-    recentProjects: allProjects,
+    recentProjects: workerProjects,
     alerts,
   });
 });

@@ -22,7 +22,10 @@ const resourceSchema = new Schema({
         type: String,
         required: true,
     },
-    assignments: [resourceAssignmentSchema] // Array of assignments to different projects
+    stockLevel: { type: Number, default: 100 },
+    minStockLevel: { type: Number, default: 10 },
+    unitCost: { type: Number, default: 0 },
+    assignments: [resourceAssignmentSchema]
 });
 
 export const Resource = mongoose.model('Resource', resourceSchema);

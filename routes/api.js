@@ -14,10 +14,19 @@ import { getDiscussionHistory, createDiscussionMessage } from "../controllers/di
 import { getDashboardSummary } from "../controllers/dashboard.controller.js";
 import { assistantChat } from "../controllers/assistant.controller.js";
 import { globalSearch } from "../controllers/search.controller.js";
-import { getNotifications } from "../controllers/notifications.controller.js";
-import { getWorkerDashboard } from "../controllers/workerDashboard.controller.js";
-import { createBid, deleteBid, getAllBids, updateBid } from "../controllers/bid.controller.js";
 import { getActivityTimeline } from "../controllers/activity.controller.js";
+import { createBid, deleteBid, getAllBids, updateBid } from "../controllers/bid.controller.js";
+import { getCityKpis, exportKpiReport } from "../controllers/kpi.controller.js";
+import { createInterDeptRequest, getInterDeptRequests, updateInterDeptRequest, escalateOverdueRequests } from "../controllers/workflow.controller.js";
+import { getAnnouncements, createAnnouncement, deleteAnnouncement } from "../controllers/announcement.controller.js";
+import { getBudgetSummary, createBudgetEntry, updateProjectBudgetCap } from "../controllers/budget.controller.js";
+import { getAuditTrail, getAuditStats } from "../controllers/audit.controller.js";
+import { getMapHubData, uploadGeoLayer, getGeoLayers, deleteGeoLayer, updateProjectLocation, syncProjectLocations } from "../controllers/geo.controller.js";
+import { getWebhooks, createWebhook, testWebhook, sendIntegrationAlert } from "../controllers/integration.controller.js";
+import { getMlPrefillData } from "../controllers/mlPrefill.controller.js";
+import { markSeminarAttendance, getSeminarAttendance, getMySeminarCertificates } from "../controllers/training.controller.js";
+import { getNotifications, markNotificationsRead, markAllNotificationsRead } from "../controllers/notifications.controller.js";
+import { getWorkerDashboard } from "../controllers/workerDashboard.controller.js";
 import { verifyJWT, authorizeRoles } from "../middlewares/auth.middleware.js";
 import { imageUpload } from "../middlewares/upload.middleware.js";
 import { validateBody, validateMongoIds } from "../middlewares/validation.middleware.js";
@@ -230,6 +239,10 @@ router.route('/search').get(globalSearch);
 
 router.route('/notifications').get(getNotifications);
 
+router.route('/notifications/read').post(markNotificationsRead);
+
+router.route('/notifications/read-all').post(markAllNotificationsRead);
+
 router.route('/activity/timeline').get(getActivityTimeline);
 
 router.route('/bids').get(getAllBids).post(
@@ -320,5 +333,38 @@ router.route('/updatecompletepath/:id').patch(
   validateBody(apiValidators.validateCompletedPathUpdate),
   updateCompletedPath
 );
+
+router.route('/kpi/city').get(getCityKpis);
+router.route('/kpi/export').get(exportKpiReport);
+
+router.route('/workflow').get(getInterDeptRequests).post(workersAndUp, createInterDeptRequest);
+router.route('/workflow/escalate').post(adminOnly, escalateOverdueRequests);
+router.route('/workflow/:id').patch(workersAndUp, validateMongoIds('id'), updateInterDeptRequest);
+
+router.route('/announcements').get(getAnnouncements).post(managers, createAnnouncement);
+router.route('/announcements/:id').delete(adminOnly, validateMongoIds('id'), deleteAnnouncement);
+
+router.route('/budget/summary').get(getBudgetSummary);
+router.route('/budget/entry').post(managers, createBudgetEntry);
+router.route('/budget/project/:projectId').patch(managers, validateMongoIds('projectId'), updateProjectBudgetCap);
+
+router.route('/audit/trail').get(adminOnly, getAuditTrail);
+router.route('/audit/stats').get(adminOnly, getAuditStats);
+
+router.route('/geo/hub').get(getMapHubData);
+router.route('/geo/sync-locations').post(adminOnly, syncProjectLocations);
+router.route('/geo/layers').get(getGeoLayers).post(adminOnly, uploadGeoLayer);
+router.route('/geo/layers/:id').delete(adminOnly, validateMongoIds('id'), deleteGeoLayer);
+router.route('/geo/project/:projectId/location').patch(managers, validateMongoIds('projectId'), updateProjectLocation);
+
+router.route('/integrations/webhooks').get(adminOnly, getWebhooks).post(adminOnly, createWebhook);
+router.route('/integrations/webhooks/:id/test').post(adminOnly, validateMongoIds('id'), testWebhook);
+router.route('/integrations/alert').post(managers, sendIntegrationAlert);
+
+router.route('/ml/prefill').get(getMlPrefillData);
+
+router.route('/seminars/:seminarId/attend').post(workersAndUp, validateMongoIds('seminarId'), markSeminarAttendance);
+router.route('/seminars/:seminarId/attendance').get(validateMongoIds('seminarId'), getSeminarAttendance);
+router.route('/seminars/certificates/me').get(getMySeminarCertificates);
 
 export default router;

@@ -11,13 +11,18 @@ import { pickFields } from "../utils/pickFields.js";
 const PROJECT_UPDATE_FIELDS = [
     'name', 'description', 'departments', 'resources', 'projectAdmin',
     'workerIds', 'taskIds', 'status', 'startDate', 'endDate', 'projectMLId',
+    'zone', 'ward', 'district', 'budgetAllocated', 'budgetSpent', 'location',
 ];
 
 export const createProject = asyncHandler(async (req, res) => {
     try {
-        const { name, description,departments,resources, projectAdmin, workerIds,taskIds,projectMLId} = req.body;
-        if (!name || !description || !departments || !projectAdmin || !resources || !workerIds || !taskIds) {
-            return res.status(400).json({ error: 'All fields are required' });
+        const {
+            name, description, departments, resources, projectAdmin,
+            workerIds = [], taskIds = [], projectMLId,
+            zone, ward, district, budgetAllocated, startDate, endDate, location,
+        } = req.body;
+        if (!name || !description || !departments || !projectAdmin || !resources) {
+            return res.status(400).json({ error: 'Name, description, departments, project admin, and resources are required' });
         }
         
         const existedProject = await Project.findOne({
@@ -51,17 +56,15 @@ export const createProject = asyncHandler(async (req, res) => {
         }
 
         if (!Array.isArray(taskIds)) {
-            return res.status(400).json({ error: 'task must be an array' });
+            return res.status(400).json({ error: 'taskIds must be an array' });
         }
 
-        if (taskIds.length === 0) {
-            return res.status(400).json({ error: 'taskIds array cannot be empty' });
-        }
-
-        const workers = await User.find({ username: { $in: workerIds } });
-        const tasks=await Task.find({_id: { $in: taskIds}});
-
-       
+        const workers = workerIds.length
+            ? await User.find({ username: { $in: workerIds } })
+            : [];
+        const tasks = taskIds.length
+            ? await Task.find({ _id: { $in: taskIds } })
+            : [];
 
         if (workers.length !== workerIds.length) {
             return res.status(404).json({ error: 'One or more workers not found' });
@@ -71,22 +74,37 @@ export const createProject = asyncHandler(async (req, res) => {
             return res.status(404).json({ error: 'One or more tasks not found' });
         }
 
-        const workerUsernames = workers.map(worker => worker.username);
-        const taskObjectIds = tasks.map(task => task._id);
-        
-        const newProject = await Project.create({
+        const workerUsernames = workers.map((worker) => worker.username);
+        const taskObjectIds = tasks.map((task) => task._id);
+
+        const projectPayload = {
             name,
             description,
             projectMLId,
-            departments:departmentObjectIds,
+            departments: departmentObjectIds,
             resources,
             projectAdmin: existingProjectAdmin.username,
             workerIds: workerUsernames,
-            taskIds:taskObjectIds,
-            startDate: new Date(), // Example property
-            endDate: new Date(),
-            status: 'active'
-        });
+            taskIds: taskObjectIds,
+            startDate: startDate ? new Date(startDate) : new Date(),
+            endDate: endDate ? new Date(endDate) : undefined,
+            status: 'active',
+        };
+
+        if (zone) projectPayload.zone = zone;
+        if (ward) projectPayload.ward = ward;
+        if (district) projectPayload.district = district;
+        if (budgetAllocated != null && budgetAllocated !== '') {
+            projectPayload.budgetAllocated = Number(budgetAllocated) || 0;
+        }
+        if (location?.lat != null && location?.lng != null) {
+            projectPayload.location = {
+                lat: Number(location.lat),
+                lng: Number(location.lng),
+            };
+        }
+
+        const newProject = await Project.create(projectPayload);
         await logActivity({
             entityType: "project",
             action: "created",
@@ -179,7 +197,7 @@ export const getProjects = async (req, res) => {
 export const getProjectById = async (req, res) => {
     try{
         const { id } = req.params;
-        const project = await Project.findById(id);
+        const project = await Project.findById(id).populate("departments", "name");
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }

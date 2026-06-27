@@ -29,15 +29,19 @@ export const createPath = async (req, res) => {
             }
         }
 
-        const newPath = new Path({
-            uuid: uuidv4(),
-            _id,
-            totalpath,
-            timestamp,
-            distance
-        });
+        const newPath = await Path.findOneAndUpdate(
+            { _id },
+            {
+                $set: {
+                    totalpath,
+                    timestamp,
+                    distance: distance ?? 0,
+                },
+                $setOnInsert: { uuid: uuidv4() },
+            },
+            { upsert: true, new: true, runValidators: true }
+        );
 
-        await newPath.save();
         res.status(201).json(newPath);
     } catch (error) {
         console.error('Error creating path:', error);

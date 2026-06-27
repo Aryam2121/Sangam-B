@@ -92,11 +92,64 @@
     }
   ],
   "chat": [
-    { "sender": "Aryaman", "receiver": "Brijesh", "text": "Can you review the task checklist?" },
-    { "sender": "Brijesh", "receiver": "Aryaman", "text": "Sure, will update by EOD." }
+    { "sender": "Main Admin", "receiver": "Field Officer", "text": "Please review the weekly task checklist." },
+    { "sender": "Field Officer", "receiver": "Main Admin", "text": "Checklist updated — two items need approval." },
+    { "sender": "Department Admin", "receiver": "Site Worker One", "text": "Confirm pipe installation status by EOD." },
+    { "sender": "Site Worker One", "receiver": "Department Admin", "text": "Installation 80% complete on Block A." }
   ],
   "discussion": [
-    { "department": "Water Department", "user": "Aryaman", "content": "Pipe delivery arrived at site." },
-    { "department": "Water Department", "user": "Field Officer", "content": "Scheduling safety briefing at 4 PM." }
+    { "department": "Water", "user": "Field Officer", "content": "Pipe delivery arrived at site." },
+    { "department": "Water", "user": "Site Worker One", "content": "Sensor calibration scheduled for tomorrow." },
+    { "department": "Roads", "user": "Site Worker Two", "content": "Asphalt mix delivered for resurfacing." }
+  ],
+  "workflow": [
+    {
+      "title": "Coordinate drainage survey with Roads",
+      "description": "Need Roads team support for outer ring junction survey.",
+      "fromDepartment": "Water",
+      "toDepartment": "Roads",
+      "requestedBy": "officer",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "title": "Share traffic diversion plan",
+      "description": "Roads department requests Water team clearance near drain works.",
+      "fromDepartment": "Roads",
+      "toDepartment": "Water",
+      "requestedBy": "worker2",
+      "status": "in_review",
+      "priority": "medium"
+    }
+  ],
+  "announcements": [
+    {
+      "title": "Monsoon preparedness drill",
+      "body": "All departments conduct readiness checks by Friday.",
+      "pinned": true
+    },
+    {
+      "title": "Water zone maintenance window",
+      "body": "Scheduled maintenance in Ward 3 — expect brief supply interruptions.",
+      "department": "Water"
+    }
+  ],
+  "budget": [
+    { "projectName": "Metro Drain Upgrade", "amount": 500000, "type": "allocation", "category": "infrastructure", "description": "Initial project allocation", "department": "Water" },
+    { "projectName": "Metro Drain Upgrade", "amount": 125000, "type": "expense", "category": "materials", "description": "PVC pipes procurement", "department": "Water" },
+    { "projectName": "Metro Drain Upgrade", "amount": 45000, "type": "expense", "category": "labour", "description": "Site crew week 1", "department": "Water" }
+  ],
+  "bids": [
+    { "contractor": "AquaBuild Pvt Ltd", "resource": "PVC Pipes", "price": 85000, "expiresInDays": 30 },
+    { "contractor": "Metro Infra Co", "resource": "Smart Sensors", "price": 92000, "expiresInDays": 30 },
+    { "contractor": "CityWorks LLC", "resource": "Pump Units", "price": 78000, "expiresInDays": 30 }
+  ],
+  "webhooks": [
+    { "name": "Slack Alerts", "url": "https://hooks.example.com/slack/sangam", "events": ["workflow", "budget"] },
+    { "name": "Email Digest", "url": "https://hooks.example.com/email/digest", "events": ["announcement", "task"] }
+  ],
+  "seminars": [
+    { "publisherName": "MoHUA Training", "seminarLink": "https://example.com/seminar/smart-cities", "description": "Smart city infrastructure best practices" },
+    { "publisherName": "Safety Board", "seminarLink": "https://example.com/seminar/site-safety", "description": "On-site safety certification module" }
   ]
 }
